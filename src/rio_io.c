@@ -64,7 +64,7 @@ ssize_t rio_read(rio_t* rp, char* buf, size_t nbytes)
 {
     while (rp->rio_cnt <= 0)
     {
-        rp->rio_cnt = read(rp->rio_fd, buf, nbytes);
+        rp->rio_cnt = read(rp->rio_fd, rp->riobuf, nbytes);
         if (rp->rio_cnt < 0)
         {
             if (errno == EINTR)
