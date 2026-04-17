@@ -22,7 +22,7 @@ all: $(TARGET_PATH)
 
 $(TARGET_PATH): $(OBJS) | $(OUTDIR)
 	$(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)
-	$(RM) $(OBJS) $(DEPS)
+#	$(RM) $(OBJS) $(DEPS)
 
 $(OUTDIR):
 	mkdir -p $@
