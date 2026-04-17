@@ -2,7 +2,7 @@ CC ?= gcc
 TARGET ?= webserver
 OUTDIR ?= webServer
 TARGET_PATH := $(OUTDIR)/$(TARGET)
-RUN_PORT ?= 1145
+RUN_PORT ?= 1144
 
 SRCS := $(wildcard src/*.c)
 OBJS := $(SRCS:.c=.o)
