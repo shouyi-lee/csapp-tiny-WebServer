@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tiny WebServer 静态页面示例</title>
+    <meta name="description" content="兼容 tiny-webserver 的纯静态页面示例，包含本地 HTML、CSS 与 JavaScript 文件。">
+    <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+    <header class="site-header">
+        <div class="container header-inner">
+            <a class="brand" href="#top">Tiny WebServer</a>
+            <nav class="nav" aria-label="主导航">
+                <a href="#features">特性</a>
+                <a href="#steps">流程</a>
+                <a href="#demo">交互</a>
+            </nav>
+            <button id="themeToggle" class="theme-toggle" type="button" aria-label="切换主题">深色模式</button>
+        </div>
+    </header>
+
+    <main id="top">
+        <section class="hero">
+            <div class="container hero-grid">
+                <div class="hero-copy">
+                    <p class="eyebrow">兼容 tiny-webserver 的纯静态示例</p>
+                    <h1>一套开箱即用的 HTML / CSS / JavaScript 页面</h1>
+                    <p class="lead">
+                        所有资源都放在 <code>webServer</code> 目录中，不依赖 CDN、框架或构建工具，
+                        启动你的 tiny-webserver 后即可直接访问。
+                    </p>
+
+                    <div class="hero-actions">
+                        <a class="button button-primary" href="#features">查看特性</a>
+                        <a class="button button-secondary" href="#demo">查看交互</a>
+                    </div>
+
+                    <ul class="highlights">
+                        <li><span>默认入口</span><strong>/index.html</strong></li>
+                        <li><span>本地样式</span><strong>/styles.css</strong></li>
+                        <li><span>本地脚本</span><strong>/app.js</strong></li>
+                    </ul>
+                </div>
+
+                <div class="hero-panel">
+                    <div class="status-card">
+                        <span id="statusPill" class="status-pill">READY</span>
+                        <h2>页面状态</h2>
+                        <p id="serverHost" class="server-host">等待浏览器加载...</p>
+
+                        <div class="metric-grid">
+                            <div class="metric">
+                                <span class="metric-label">页面模式</span>
+                                <strong id="themeLabel">LIGHT</strong>
+                            </div>
+                            <div class="metric">
+                                <span class="metric-label">本地时间</span>
+                                <strong id="clock">--:--:--</strong>
+                            </div>
+                        </div>
+
+                        <button id="statusButton" class="button button-ghost" type="button">刷新状态</button>
+                        <p id="statusText" class="helper-text">页面已准备就绪，可以直接由 tiny-webserver 提供。</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="features" class="section">
+            <div class="container">
+                <div class="section-heading">
+                    <p class="section-kicker">为什么这套文件可以直接使用</p>
+                    <h2>专门按 tiny-webserver 的静态资源方式组织</h2>
+                    <p>
+                        页面只使用浏览器原生能力，避免任何需要额外服务端支持的高级特性，
+                        让你的 C 语言 WebServer 也能稳定提供前端页面。
+                    </p>
+                </div>
+
+                <div class="card-grid">
+                    <article class="info-card">
+                        <h3>纯静态资源</h3>
+                        <p>只包含 <code>.html</code>、<code>.css</code>、<code>.js</code> 三类文件，与你当前 MIME 映射完全兼容。</p>
+                    </article>
+                    <article class="info-card">
+                        <h3>本地相对引用</h3>
+                        <p>HTML 中通过本地路径引用样式和脚本，不需要外网，也不需要 npm、打包器或构建流程。</p>
+                    </article>
+                    <article class="info-card">
+                        <h3>默认首页可访问</h3>
+                        <p>你的服务器会把根路径映射到 <code>/index.html</code>，因此打开首页即可看到内容。</p>
+                    </article>
+                    <article class="info-card">
+                        <h3>简单交互演示</h3>
+                        <p>提供主题切换、时钟更新与状态提示，方便验证 JavaScript 是否已经成功执行。</p>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <section id="steps" class="section section-alt">
+            <div class="container">
+                <div class="section-heading">
+                    <p class="section-kicker">使用流程</p>
+                    <h2>三步完成本地访问</h2>
+                </div>
+
+                <div class="step-list">
+                    <article class="step-item">
+                        <span class="step-index">01</span>
+                        <h3>编译并运行服务端</h3>
+                        <p>在 <code>csapp/tiny-server</code> 中执行 <code>make run</code>，服务程序会在 <code>webServer</code> 目录内启动。</p>
+                    </article>
+                    <article class="step-item">
+                        <span class="step-index">02</span>
+                        <h3>浏览器访问首页</h3>
+                        <p>打开 <code>http://localhost:8080/</code>，请求会自动落到 <code>index.html</code>。</p>
+                    </article>
+                    <article class="step-item">
+                        <span class="step-index">03</span>
+                        <h3>验证静态资源加载</h3>
+                        <p>确认页面样式正常、按钮可点击、时钟在走动，说明 CSS 与 JavaScript 已成功加载。</p>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <section id="demo" class="section">
+            <div class="container demo-layout">
+                <div class="demo-panel">
+                    <p class="section-kicker">交互演示</p>
+                    <h2>用简单按钮验证脚本逻辑</h2>
+                    <p>
+                        点击下面的按钮可以高亮特性卡片、重置页面状态，或者刷新右上角状态信息，
+                        这能帮助你快速确认 <code>app.js</code> 是否生效。
+                    </p>
+
+                    <div class="demo-actions">
+                        <button id="highlightButton" class="button button-primary" type="button">高亮卡片</button>
+                        <button id="resetButton" class="button button-secondary" type="button">重置样式</button>
+                    </div>
+                </div>
+
+                <div class="demo-panel notice-panel">
+                    <div id="noticeBoard" class="notice-board">
+                        <p class="notice-title">运行提示</p>
+                        <p id="noticeText" class="notice-body">页面已加载，等待你的操作。</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container footer-inner">
+            <p>© <span id="year"></span> Tiny WebServer Demo</p>
+            <p>静态资源目录：<code>csapp/tiny-server/webServer/</code></p>
+        </div>
+    </footer>
+
+    <noscript>
+        <div class="noscript-banner">你的浏览器已禁用 JavaScript，页面仍可展示静态内容，但交互功能不会启用。</div>
+    </noscript>
+
+    <script src="./app.js" defer></script>
+</body>
+</html>
