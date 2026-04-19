@@ -1,0 +1,11 @@
+@charset "utf-8";
+.question {
+    font-family: "Ma Shan Zheng", cursive;
+    color: red;
+}
+
+.ma-shan-zheng-regular {
+  font-family: "Ma Shan Zheng", cursive;
+  font-weight: 400;
+  font-style: normal;
+}
