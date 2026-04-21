@@ -29,6 +29,6 @@ void parse_url(http_request_t *hrp)
     else
         hrp->is_static = 1;
 
-    strcpy(hrp->filename, ".");
+    strcpy(hrp->filename, "./www");
     strcat(hrp->filename, hrp->url);
 }

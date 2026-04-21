@@ -56,6 +56,12 @@ void doit(int confd)
 
 void serve(const char *port)
 {
+    if (log_init() < 0)
+    {
+        fprintf(stdout, "init log serve failed\n");
+        return;
+    }
+    
     int listenfd = open_listenfd(port);
     if (listenfd < 0)
     {

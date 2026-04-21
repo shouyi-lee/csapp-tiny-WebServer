@@ -1,5 +1,6 @@
 #include "config.h"
 #include "request.h"
+#include "log.h"
 #include <stdio.h>
 #include <string.h>
 
@@ -12,6 +13,8 @@ void parse_http_request(http_request_t *hrp)
         return;
     }
 
+    log_requestline(hrp->request_line);
+
     if (strcasecmp(hrp->method, "GET"))
         hrp->is_suport_method = 0;
 
@@ -20,9 +23,11 @@ void parse_http_request(http_request_t *hrp)
 
 void parse_http_request_head(rio_t *rp)
 {
-    char buf[BUFLEN];
+    char buf[BUFLEN] = {};
     rio_readlineb(rp, buf, BUFLEN);
 
-    while (strcmp("\r\n", buf))
+    while (strcmp("\r\n", buf)){
         rio_readlineb(rp, buf, BUFLEN);
+        log_requesthead(buf);
+    }
 }

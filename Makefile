@@ -1,8 +1,9 @@
 CC ?= gcc
 TARGET ?= webserver
-OUTDIR ?= webServer
-TARGET_PATH := $(OUTDIR)/$(TARGET)
-RUN_PORT ?= 1144
+TARGET_PATH := $(TARGET)
+LOG_DIR := log
+RUN_PORT ?= 1145
+RUN_COND ?= &
 
 SRCS := $(wildcard src/*.c)
 OBJS := $(SRCS:.c=.o)
@@ -20,22 +21,21 @@ RM ?= rm -f
 all: $(TARGET_PATH)
 
 
-$(TARGET_PATH): $(OBJS) | $(OUTDIR)
+$(TARGET_PATH): $(OBJS)
 	$(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)
 #	$(RM) $(OBJS) $(DEPS)
 
-$(OUTDIR):
-	mkdir -p $@
+$(LOG_DIR):
+	mkdir -p log
 
 %.o: %.c
 	$(CC) $(CPPFLAGS) $(CFLAGS) $(DEPFLAGS) -c $< -o $@
 
-run: $(TARGET_PATH)
-	cd $(OUTDIR) && ./$(TARGET) $(RUN_PORT)
+run: $(TARGET_PATH) | $(LOG_DIR)
+	./$(TARGET) $(RUN_PORT) $(RUN_COND)
 
 clean:
 	$(RM) $(OBJS) $(DEPS) $(TARGET_PATH)
-	rmdir --ignore-fail-on-non-empty $(OUTDIR) 2>/dev/null || true
 
 rebuild: clean all
 

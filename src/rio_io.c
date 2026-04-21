@@ -7,14 +7,15 @@
 #include <unistd.h>
 #include <errno.h>
 
-ssize_t rio_readn(int fd, char* buf, size_t nbytes)
+ssize_t rio_readn(int fd, const char* buf, size_t nbytes)
 {
     ssize_t rc, wait_read;
     wait_read = nbytes;
+    char *cbuf = (char*)buf;
 
     while (wait_read > 0)
     {
-        rc = read(fd, buf + nbytes - wait_read, wait_read);
+        rc = read(fd, cbuf + nbytes - wait_read, wait_read);
         if (rc < 0)
         {
             if (errno == EINTR)
@@ -30,7 +31,7 @@ ssize_t rio_readn(int fd, char* buf, size_t nbytes)
     return nbytes - wait_read;
 }
 
-ssize_t rio_writen(int fd, char* buf, size_t nbytes)
+ssize_t rio_writen(int fd, const char* buf, size_t nbytes)
 {
     ssize_t wc, wait_write;
     wait_write = nbytes;
@@ -60,8 +61,10 @@ void rio_init(rio_t *rp, int fd)
     rp->riobuf_ptr = rp->riobuf;
 }
 
-ssize_t rio_read(rio_t* rp, char* buf, size_t nbytes)
+ssize_t rio_read(rio_t* rp, const char* buf, size_t nbytes)
 {
+    char *cbuf = (char*)buf;
+
     while (rp->rio_cnt <= 0)
     {
         rp->rio_cnt = read(rp->rio_fd, rp->riobuf, nbytes);
@@ -78,14 +81,14 @@ ssize_t rio_read(rio_t* rp, char* buf, size_t nbytes)
     }
 
     int cnt = (signed)nbytes > rp->rio_cnt ? rp->rio_cnt : (signed)nbytes;
-    memcpy(buf, rp->riobuf_ptr, cnt);
+    memcpy(cbuf, rp->riobuf_ptr, cnt);
     rp->rio_cnt -= cnt;
     rp->riobuf_ptr += cnt;
 
     return cnt;
 }
 
-ssize_t rio_readnb(rio_t* rp, char *buf, size_t nbytes)
+ssize_t rio_readnb(rio_t* rp, const char *buf, size_t nbytes)
 {
     ssize_t rc, wait_read;
     wait_read = nbytes;
@@ -104,11 +107,11 @@ ssize_t rio_readnb(rio_t* rp, char *buf, size_t nbytes)
     return nbytes - wait_read;
 }
 
-ssize_t rio_readlineb(rio_t *rp, char *buf, size_t nbytes)
+ssize_t rio_readlineb(rio_t *rp, const char *buf, size_t nbytes)
 {
     ssize_t rc, wait_read;
     wait_read = nbytes;
-    char tem;
+    char tem, *cbuf = (char*)buf;
 
     while (wait_read > 1)
     {
@@ -122,18 +125,18 @@ ssize_t rio_readlineb(rio_t *rp, char *buf, size_t nbytes)
             return 0;
         }
 
-        buf[nbytes -wait_read] = tem;
+        cbuf[nbytes -wait_read] = tem;
         wait_read -= rc;
 
         if (tem == '\n')
             break;
     }
 
-    buf[nbytes - wait_read] = '\0';
+    cbuf[nbytes - wait_read] = '\0';
     return nbytes - wait_read;
 }
 
-ssize_t rio_writenb(rio_t *rp, char *buf, size_t nbytes)
+ssize_t rio_writenb(rio_t *rp, const char *buf, size_t nbytes)
 {
     return rio_writen(rp->rio_fd, buf, nbytes);
 }
