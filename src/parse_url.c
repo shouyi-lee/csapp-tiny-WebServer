@@ -7,7 +7,7 @@ void parse_url(http_request_t *hrp)
 {
     hrp->is_suport_method = 1;
 
-    if (!strncmp("/", hrp->url, BUFLEN))
+    if (!strcmp("/", hrp->url))
         strcpy(hrp->url, "/index.html");
 
     if (strstr(hrp->url, ".."))
