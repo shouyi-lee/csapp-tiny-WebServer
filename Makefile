@@ -4,13 +4,14 @@ TARGET_PATH := $(TARGET)
 LOG_DIR := log
 RUN_PORT ?= 1145
 RUN_COND ?= &
+BASIC_HTML ?= www/index.html
 
 SRCS := $(wildcard src/*.c)
 OBJS := $(SRCS:.c=.o)
 DEPS := $(OBJS:.o=.d)
 
 CPPFLAGS ?=
-CFLAGS ?= -Wall -Wextra -g -O0 -std=gnu11
+CFLAGS ?= -Wall -Wextra -O2 -std=gnu11
 DEPFLAGS := -MMD -MP
 LDFLAGS ?=
 LDLIBS ?=
@@ -31,7 +32,7 @@ $(LOG_DIR):
 %.o: %.c
 	$(CC) $(CPPFLAGS) $(CFLAGS) $(DEPFLAGS) -c $< -o $@
 
-run: $(TARGET_PATH) | $(LOG_DIR)
+run: $(TARGET_PATH) | $(LOG_DIR) $(BASIC_HTML)
 	./$(TARGET) $(RUN_PORT) $(RUN_COND)
 
 clean:
