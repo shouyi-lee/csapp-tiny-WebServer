@@ -5,8 +5,10 @@
 
 void parse_url(http_request_t *hrp)
 {
+    hrp->is_suport_method = 1;
+
     if (!strncmp("/", hrp->url, BUFLEN))
-        memcpy(hrp->url, "/index.html", BUFLEN);
+        strcpy(hrp->url, "/index.html");
 
     if (strstr(hrp->url, ".."))
     {
@@ -21,7 +23,7 @@ void parse_url(http_request_t *hrp)
         if (ptr)
         {
             *ptr = '\0';
-            strcpy(hrp->cgiargs, ptr);
+            strcpy(hrp->cgiargs, ptr + 1);
         }
         else
             strcpy(hrp->cgiargs, "");
