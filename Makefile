@@ -4,7 +4,7 @@ TARGET_PATH := $(TARGET)
 LOG_DIR := log
 RUN_PORT ?= 1145
 RUN_COND ?= &
-BASIC_HTML ?= www/index.html
+BASIC_HTML ?= website/index.html
 
 SRCS := $(wildcard src/*.c)
 OBJS := $(SRCS:.c=.o)
