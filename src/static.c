@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <sys/sendfile.h>
 
 typedef struct {
     const char *ext;
@@ -72,8 +73,6 @@ void serve_static(rio_t *rp, http_request_t *hrp)
     send_responsehead(rp, "Content-type", filetype);
     send_responsehead(rp, NULL, NULL);
 
-    char *src = mmap(NULL, filelenth, PROT_READ, MAP_PRIVATE, fd, 0);
+    sendfile(rp->rio_fd, fd, NULL, filelenth);
     close(fd);
-    rio_writenb(rp, src, filelenth);
-    munmap(src, filelenth);
 }
