@@ -59,9 +59,6 @@ static void get_file_info(http_request_t *hrp, char *filetype, char *filelenth)
 
 void serve_static(rio_t *rp, http_request_t *hrp)
 {
-    int fd = open(hrp->filename, O_RDONLY);
-    if (fd < 0) return;
-
     char filetype[BUFLEN];
     char filelenth_b[BUFLEN];
     get_file_info(hrp, filetype, filelenth_b);
@@ -72,6 +69,12 @@ void serve_static(rio_t *rp, http_request_t *hrp)
     send_responsehead(rp, "Content-length", filelenth_b);
     send_responsehead(rp, "Content-type", filetype);
     send_responsehead(rp, NULL, NULL);
+
+    if (!strcmp(hrp->method, "HEAD"))
+        return;
+
+    int fd = open(hrp->filename, O_RDONLY);
+    if (fd < 0) return;
 
     sendfile(rp->rio_fd, fd, NULL, filelenth);
     close(fd);

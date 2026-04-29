@@ -9,6 +9,7 @@
 
 static void handle_child(int signo)
 {
+    (void) signo;
     while (waitpid(-1, NULL, WNOHANG) > 0);
 }
 
