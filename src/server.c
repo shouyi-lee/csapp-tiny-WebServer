@@ -21,7 +21,7 @@ void doit(int confd)
     rio_t rio;
     rio_init(&rio, confd);
     
-    http_request_t clientrequest;
+    http_request_t clientrequest = {0};
     rio_readlineb(&rio, clientrequest.request_line, BUFLEN);
     parse_http_request(&clientrequest);
 

@@ -6,14 +6,14 @@
 
 void parse_http_request(http_request_t *hrp)
 {
-    hrp->is_suport_method = 1;
-
     if (!sscanf(hrp->request_line, "%s %s %s",
         hrp->method, hrp->url, hrp->version))
     {
         hrp->is_suport_method = 0;
         return;
     }
+    else
+        hrp->is_suport_method = 1;
 
     log_requestline(hrp->request_line);
 

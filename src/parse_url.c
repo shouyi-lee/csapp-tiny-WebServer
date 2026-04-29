@@ -5,8 +5,6 @@
 
 void parse_url(http_request_t *hrp)
 {
-    hrp->is_suport_method = 1;
-
     if (!strcmp("/", hrp->url))
         strcpy(hrp->url, "/index.html");
 
@@ -15,6 +13,8 @@ void parse_url(http_request_t *hrp)
         hrp->is_suport_url = 0;
         return;
     }
+    else
+        hrp->is_suport_url = 1;
 
     if (strstr(hrp->url, "cgi-bin"))
     {
