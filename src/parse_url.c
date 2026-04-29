@@ -6,13 +6,15 @@
 void parse_url(http_request_t *hrp)
 {
     if (!strncmp("/", hrp->url, BUFLEN))
-        memcpy(hrp->url, "/index.html", BUFLEN);
+        strcpy(hrp->url, "/index.html");
 
     if (strstr(hrp->url, ".."))
     {
         hrp->is_suport_url = 0;
         return;
     }
+    else
+        hrp->is_suport_url = 1;
 
     if (strstr(hrp->url, "cgi-bin"))
     {

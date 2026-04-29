@@ -12,6 +12,8 @@ void parse_http_request(http_request_t *hrp)
         hrp->is_suport_method = 0;
         return;
     }
+    else
+        hrp->is_suport_method = 1;
 
     log_requestline(hrp->request_line);
 
