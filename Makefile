@@ -6,11 +6,12 @@ RUN_PORT ?= 1145
 RUN_COND ?= &
 BASIC_HTML ?= website/index.html
 
-SRCS := $(wildcard src/*.c)
+SRCS := $(shell find src -type f -name '*.c' | sort)
 OBJS := $(SRCS:.c=.o)
 DEPS := $(OBJS:.o=.d)
 
 CPPFLAGS ?=
+CPPFLAGS += -Isrc/include
 CFLAGS ?= -Wall -Wextra -O2 -std=gnu11
 DEPFLAGS := -MMD -MP
 LDFLAGS ?=
