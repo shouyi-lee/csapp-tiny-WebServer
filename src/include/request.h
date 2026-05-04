@@ -18,6 +18,6 @@ typedef struct {
 } http_request_t;
 
 void parse_http_request(http_request_t *hrp);
-void parse_http_request_head(rio_t *rp);
+void parse_http_request_head(rio_t *rp, int *keep_alive);
 
 #endif

@@ -6,6 +6,13 @@
 #include <pthread.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/socket.h>
+#include <sys/eventfd.h>
+#include <sys/select.h>
+#include <sys/fcntl.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <netdb.h>
 
 static task_t task_table[TASK_NUM];
 static customer_t customer_table[CUSTOMER_NUM];
@@ -22,10 +29,17 @@ static fd_set serve_fds;
 
 static pthread_t register_pth;
 
+static int wake_fd;
+
 ssize_t pool_init()
 {
     memset(&task_table, 0, sizeof(task_table[0]) * TASK_NUM);
     memset(&customer_table, 0, sizeof(customer_table[0]) * CUSTOMER_NUM);
+
+    for (size_t i = 0; i < CUSTOMER_NUM; i++)
+    {
+        pthread_mutex_init(&customer_table[i].mutex, NULL);
+    }
 
     head = top = 0;
 
@@ -36,6 +50,8 @@ ssize_t pool_init()
     sem_init(&customer_space_free, 0, CUSTOMER_NUM);
     sem_init(&customer_space_used, 0, 0);
 
+    wake_fd = eventfd(0, 0);
+
     pthread_create(&register_pth, NULL, task_search, NULL);
     pthread_detach(register_pth);
 
@@ -44,10 +60,12 @@ ssize_t pool_init()
 
 void *task_search(void *args)
 {
+    (void) args;
     for(;;)
     {
         fd_set save;
         FD_ZERO(&serve_fds);
+        FD_SET(wake_fd, &serve_fds);
 
         for (size_t i = 0; i < CUSTOMER_NUM; i++)
         {
@@ -61,12 +79,23 @@ void *task_search(void *args)
         }
 
         save = serve_fds;
+        (void) save;
 
         select(FD_SETSIZE, &serve_fds, NULL, NULL, NULL);
 
         for (size_t i = 0; i < CUSTOMER_NUM; i++)
+        {
             if (RIO_ISSET(&customer_table[i].rio, &serve_fds))
                 task_register(&customer_table[i]);
+
+            if (FD_ISSET(wake_fd, &serve_fds))
+            {
+                uint64_t u64;
+                ssize_t res = read(wake_fd, &u64, 8);
+                (void) res;
+                break;
+            }
+        }
     }
 
     return NULL;
@@ -81,7 +110,7 @@ ssize_t task_register(customer_t *customer)
     pthread_mutex_unlock(&customer->mutex);
 
     pthread_mutex_lock(&mutex);
-    top = top++ % TASK_NUM;
+    top = (top + 1) % TASK_NUM;
     task_t task = {.customer = customer};
     task_table[top] = task;
     pthread_mutex_unlock(&mutex);
@@ -96,7 +125,7 @@ task_t task_fetch()
     sem_wait(&task_avalaible);
 
     pthread_mutex_lock(&mutex);
-    head = ++head % TASK_NUM;
+    head = (head + 1) % TASK_NUM;
     task_t task = task_table[head];
     pthread_mutex_unlock(&mutex);
 
@@ -143,6 +172,10 @@ ssize_t customer_add(int fd, void *client_info, size_t client_info_len)
     pthread_mutex_unlock(&customer->mutex);
     sem_post(&customer_space_used);
 
+    uint64_t u64 = 1;
+    ssize_t res = write(wake_fd, &u64, 8);
+    (void) res;
+
     return 0;
 }
 
@@ -153,7 +186,6 @@ ssize_t customer_delete(customer_t *customer)
     
     customer->used = 0;
     customer->dealing = 0;
-    pthread_mutex_destroy(&customer->mutex);
     rio_deinit(&customer->rio);
 
     pthread_mutex_unlock(&customer->mutex);

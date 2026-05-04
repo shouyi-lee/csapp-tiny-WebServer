@@ -1,7 +1,10 @@
 #ifndef SERVER_H
 #define SERVER_H
 
-void serve(const char *port);
-void doit(int confd);
+#include <sys/types.h>
+
+ssize_t serve_init();
+
+#define SERVE_THREAD_NUM 16
 
 #endif

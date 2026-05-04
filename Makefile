@@ -1,9 +1,9 @@
 CC ?= gcc
 TARGET ?= webserver
 TARGET_PATH := $(TARGET)
-LOG_DIR := log
+LOG_DIR := log_file
 RUN_PORT ?= 1145
-RUN_COND ?= &
+RUN_COND ?= 
 BASIC_HTML ?= website/index.html
 
 SRCS := $(shell find src -type f -name '*.c' | sort)

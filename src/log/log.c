@@ -33,7 +33,7 @@ ssize_t log_requesthead(const char *requsthead)
 
 ssize_t log_init()
 {
-    int fd = open("./log/server_log", O_CREAT | O_RDWR | O_APPEND, 0644);
+    int fd = open("./log_file/server_log", O_CREAT | O_RDWR | O_APPEND, 0644);
     if (fd < 0) return -1;
     rio_init(&log_file, fd);
     return 0;

@@ -140,3 +140,9 @@ ssize_t rio_writenb(rio_t *rp, const char *buf, size_t nbytes)
 {
     return rio_writen(rp->rio_fd, buf, nbytes);
 }
+
+ssize_t rio_deinit(rio_t *rp)
+{
+    close(rp->rio_fd);
+    return 0;
+}

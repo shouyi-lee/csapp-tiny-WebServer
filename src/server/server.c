@@ -7,6 +7,8 @@
 #include "parse_url.h"
 #include "dynamic.h"
 #include "static.h"
+#include "server.h"
+#include "pool.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -15,74 +17,69 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <netdb.h>
+#include <pthread.h>
+#include <semaphore.h>
 
-void doit(int confd)
+pthread_t pid[SERVE_THREAD_NUM];
+
+int doit(rio_t* rp)
 {
-    rio_t rio;
-    rio_init(&rio, confd);
-    
     http_request_t clientrequest = {0};
-    rio_readlineb(&rio, clientrequest.request_line, BUFLEN);
+    rio_readlineb(rp, clientrequest.request_line, BUFLEN);
     parse_http_request(&clientrequest);
+
+    int keep_alive;
+    parse_http_request_head(rp, &keep_alive);
+    parse_url(&clientrequest);
 
     if (!clientrequest.is_suport_method)
     {
-        clienterror(&rio, "501");
-        return;
+        clienterror(rp, "501");
+        return 0;
     }
-
-    parse_http_request_head(&rio);
-    parse_url(&clientrequest);
 
     if (!clientrequest.is_suport_url)
     {
-        clienterror(&rio, "404");
-        return;
+        clienterror(rp, "404");
+        return 0;
     }
 
     struct stat filestat;
     stat(clientrequest.filename, &filestat);
     if (!S_ISREG(filestat.st_mode) || !(S_IRUSR & filestat.st_mode))
     {
-        clienterror(&rio, "404");
-        return;
+        clienterror(rp, "404");
+        return 0;
     }
 
     if (clientrequest.is_static)
-        serve_static(&rio, &clientrequest);
+        serve_static(rp, &clientrequest);
     else
-        serve_dynamic(&rio, &clientrequest);
+        serve_dynamic(rp, &clientrequest);
+
+    return keep_alive;
 }
 
-void serve(const char *port)
+void *serve(void *args)
 {
-    if (log_init() < 0)
+    (void) args;
+    for (;;)
     {
-        fprintf(stdout, "init log serve failed\n");
-        return;
-    }
-    
-    int listenfd = open_listenfd(port);
-    if (listenfd < 0)
-    {
-        fprintf(stdout, "not a available port\n");
-        return;
+        task_t task = task_fetch();
+        task.keep_alive = doit(&task.customer->rio);
+        task_return(task);
     }
 
-    while (1)
+    return NULL;
+}
+
+ssize_t serve_init()
+{
+    for (size_t i = 0; i < SERVE_THREAD_NUM; i++)
     {
-        socklen_t clientlen = sizeof(struct sockaddr_storage);
-        struct sockaddr_storage client;
-        struct sockaddr *clientp = (struct sockaddr*)&client;
-
-        int confd = accept(listenfd, clientp, &clientlen);
-        if (confd < 0) continue;
-
-        char hostname[1024], port[1024];
-        getnameinfo(clientp, clientlen, hostname, 1024, port, 1024, NI_NUMERICHOST|NI_NUMERICSERV);   
-        log_customeraddr(hostname, port);
-
-        doit(confd);
-        close(confd);
+        pthread_create(&pid[i], NULL, serve, NULL);
+        pthread_detach(pid[i]);
     }
+
+    return 0;
 }

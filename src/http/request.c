@@ -20,7 +20,7 @@ void parse_http_request(http_request_t *hrp)
         hrp->method, hrp->url, hrp->version))
         return;
 
-    log_requestline(hrp->request_line);
+    //log_requestline(hrp->request_line);
 
     size_t method_list_len = sizeof(supported_methods) / sizeof(supported_method_t);
     for (size_t i = 0; i < method_list_len; i++)
@@ -33,13 +33,22 @@ void parse_http_request(http_request_t *hrp)
     return;
 }
 
-void parse_http_request_head(rio_t *rp)
+void parse_http_request_head(rio_t *rp, int *keep_alive)
 {
-    char buf[BUFLEN] = {};
-    rio_readlineb(rp, buf, BUFLEN);
+    *keep_alive = 1;
 
-    while (strcmp("\r\n", buf)){
+    char buf[BUFLEN] = {};
+    char headbuf[BUFLEN] = {};
+    
+    do
+    {
         rio_readlineb(rp, buf, BUFLEN);
-        log_requesthead(buf);
-    }
+        //log_requesthead(buf);
+        if (!strcmp(buf, "Connection:")
+            && sscanf(buf, "Connection: %s", headbuf) == 1
+            && !strcmp(headbuf, "close"))
+            *keep_alive = 0;
+    }while (strcmp(buf, "\r\n"));
+
+    return;
 }
