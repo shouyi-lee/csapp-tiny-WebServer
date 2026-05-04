@@ -1,4 +1,4 @@
-log_file/
+log_file
 webserver
 **/*.[od]
 .vscode
