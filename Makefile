@@ -28,7 +28,7 @@ $(TARGET_PATH): $(OBJS)
 #	$(RM) $(OBJS) $(DEPS)
 
 $(LOG_DIR):
-	mkdir -p log
+	mkdir -p log_file
 
 %.o: %.c
 	$(CC) $(CPPFLAGS) $(CFLAGS) $(DEPFLAGS) -c $< -o $@

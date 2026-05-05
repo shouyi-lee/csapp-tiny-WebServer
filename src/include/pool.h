@@ -6,6 +6,7 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <stdlib.h>
+#include <time.h>
 
 
 typedef struct 
@@ -14,6 +15,7 @@ typedef struct
     struct sockaddr_storage client_info;
     int used;
     int dealing;
+    struct timespec last_active;
     pthread_mutex_t mutex;
 } customer_t;
 

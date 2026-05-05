@@ -13,6 +13,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <netdb.h>
+#include <time.h>
 
 static task_t task_table[TASK_NUM];
 static customer_t customer_table[CUSTOMER_NUM];
@@ -81,7 +82,39 @@ void *task_search(void *args)
         save = serve_fds;
         (void) save;
 
-        select(FD_SETSIZE, &serve_fds, NULL, NULL, NULL);
+        struct timeval wait_time = {.tv_sec = 1};
+        int res = select(FD_SETSIZE, &serve_fds, NULL, NULL, &wait_time);
+
+        if (res == 0)
+        {
+            struct timespec nowtime;
+            clock_gettime(CLOCK_MONOTONIC, &nowtime);
+
+            for (size_t i = 0; i < CUSTOMER_NUM; i++)
+            {
+                pthread_mutex_lock(&customer_table[i].mutex);
+                if (customer_table[i].used == 0
+                || (customer_table[i].used == 1
+                && customer_table[i].dealing == 1))
+                {
+                    pthread_mutex_unlock(&customer_table[i].mutex);
+                    continue;
+                }
+
+                if (nowtime.tv_sec - customer_table[i].last_active.tv_sec > 5)
+                {
+                    pthread_mutex_unlock(&customer_table[i].mutex);
+                    customer_delete(&customer_table[i]);
+                }
+                pthread_mutex_unlock(&customer_table[i].mutex);
+            }
+
+            continue;
+        } 
+        else if (res < 0)
+        {
+            continue;
+        }
 
         for (size_t i = 0; i < CUSTOMER_NUM; i++)
         {
@@ -142,6 +175,7 @@ ssize_t task_return(task_t task)
     {
         pthread_mutex_lock(&task.customer->mutex);
         task.customer->dealing = 0;
+        clock_gettime(CLOCK_MONOTONIC, &task.customer->last_active);
         pthread_mutex_unlock(&task.customer->mutex);
     }
 
@@ -166,6 +200,7 @@ ssize_t customer_add(int fd, void *client_info, size_t client_info_len)
 
     customer->used = 1;
     customer->dealing = 0;
+    clock_gettime(CLOCK_MONOTONIC, &customer->last_active);
     rio_init(&customer->rio, fd);
     memcpy(&customer->client_info, client_info, client_info_len);
 
