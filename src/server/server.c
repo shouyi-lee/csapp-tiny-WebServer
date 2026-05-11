@@ -25,12 +25,16 @@ pthread_t pid[SERVE_THREAD_NUM];
 int doit(rio_t* rp)
 {
     http_request_t clientrequest = {0};
-    rio_readlineb(rp, clientrequest.request_line, BUFLEN);
+    if (rio_readlineb(rp, clientrequest.request_line, BUFLEN) <= 0)
+        return 0;
     parse_http_request(&clientrequest);
 
     int keep_alive;
     parse_http_request_head(rp, &keep_alive);
     parse_url(&clientrequest);
+
+    if (keep_alive == 0)
+        return keep_alive;
 
     if (!clientrequest.is_suport_method)
     {

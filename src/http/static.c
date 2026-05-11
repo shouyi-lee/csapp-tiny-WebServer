@@ -65,7 +65,7 @@ void serve_static(rio_t *rp, http_request_t *hrp)
     size_t filelenth = atoi(filelenth_b);
     send_responseline(rp, "HTTP/1.0", "200", "OK");
     send_responsehead(rp, "Server", "shouyi-lee Web Server");
-    send_responsehead(rp, "Connection", "Close");
+    send_responsehead(rp, "Connection", "keep-alive");
     send_responsehead(rp, "Content-length", filelenth_b);
     send_responsehead(rp, "Content-type", filetype);
     send_responsehead(rp, NULL, NULL);
