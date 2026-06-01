@@ -10,7 +10,7 @@ void serve_dynamic(rio_t *rp, http_request_t *hrp)
 {
     char *argv[] = {NULL};
 
-    send_responseline(rp, "HTTP/1.0", "200", "OK");
+    send_responseline(rp, "HTTP/1.1", "200", "OK");
     send_responsehead(rp, "Server", "shouyi-lee Web Server");
     
     if (fork() == 0)
