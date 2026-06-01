@@ -38,7 +38,7 @@ static const char *http_status_desc(const char *code)
 ssize_t clienterror(rio_t *rp, const char *code)
 {
     const char *message = http_status_desc(code);
-    send_responseline(rp, "HTTP/1.0", code, message);
+    send_responseline(rp, "HTTP/1.1", code, message);
     send_responsehead(rp, NULL, NULL);
     return 0;
 }

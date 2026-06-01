@@ -44,7 +44,7 @@ void parse_http_request_head(rio_t *rp, int *keep_alive)
     {
         rio_readlineb(rp, buf, BUFLEN);
         //log_requesthead(buf);
-        if (!strcmp(buf, "Connection:")
+        if (!strstr(buf, "Connection:")
             && sscanf(buf, "Connection: %s", headbuf) == 1
             && !strcmp(headbuf, "close"))
             *keep_alive = 0;

@@ -25,7 +25,7 @@ pthread_t pid[SERVE_THREAD_NUM];
 int doit(rio_t* rp)
 {
     http_request_t clientrequest = {0};
-    rio_readlineb(rp, clientrequest.request_line, BUFLEN);
+    if (rio_readlineb(rp, clientrequest.request_line, BUFLEN) <= 0) return 0;
     parse_http_request(&clientrequest);
 
     int keep_alive;
