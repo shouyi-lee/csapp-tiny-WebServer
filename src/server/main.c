@@ -10,6 +10,7 @@
 #include <netdb.h>
 #include <unistd.h>
 #include <string.h>
+#include <errno.h>
 #include <sys/select.h>
 
 int main(int argc, char *argv[])
@@ -55,7 +56,12 @@ int main(int argc, char *argv[])
         struct sockaddr *clientp = (struct sockaddr*)&client;
 
         int confd = accept(listenfd, clientp, &clientlen);
-        if (confd < 0) continue;
+        if (confd < 0)
+        {
+            if (errno == EINTR) continue;
+            usleep(100000);
+            continue;
+        }
 
         char hostname[1024], port[1024];
         getnameinfo(clientp, clientlen, hostname, 1024, port, 1024, NI_NUMERICHOST|NI_NUMERICSERV);   
@@ -64,5 +70,6 @@ int main(int argc, char *argv[])
         customer_add(confd, clientp, clientlen);
     }
 
+    close(listenfd);
     return 0;
 }

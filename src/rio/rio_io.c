@@ -7,11 +7,11 @@
 #include <unistd.h>
 #include <errno.h>
 
-ssize_t rio_readn(int fd, const char* buf, size_t nbytes)
+ssize_t rio_readn(int fd, char* buf, size_t nbytes)
 {
     ssize_t rc, wait_read;
     wait_read = nbytes;
-    char *cbuf = (char*)buf;
+    char *cbuf = buf;
 
     while (wait_read > 0)
     {
@@ -61,9 +61,9 @@ void rio_init(rio_t *rp, int fd)
     rp->riobuf_ptr = rp->riobuf;
 }
 
-ssize_t rio_read(rio_t* rp, const char* buf, size_t nbytes)
+ssize_t rio_read(rio_t* rp, char* buf, size_t nbytes)
 {
-    char *cbuf = (char*)buf;
+    char *cbuf = buf;
 
     while (rp->rio_cnt <= 0)
     {
@@ -88,7 +88,7 @@ ssize_t rio_read(rio_t* rp, const char* buf, size_t nbytes)
     return cnt;
 }
 
-ssize_t rio_readnb(rio_t* rp, const char *buf, size_t nbytes)
+ssize_t rio_readnb(rio_t* rp, char *buf, size_t nbytes)
 {
     ssize_t rc, wait_read;
     wait_read = nbytes;
@@ -107,11 +107,11 @@ ssize_t rio_readnb(rio_t* rp, const char *buf, size_t nbytes)
     return nbytes - wait_read;
 }
 
-ssize_t rio_readlineb(rio_t *rp, const char *buf, size_t nbytes)
+ssize_t rio_readlineb(rio_t *rp, char *buf, size_t nbytes)
 {
     ssize_t rc, wait_read;
     wait_read = nbytes;
-    char tem, *cbuf = (char*)buf;
+    char tem, *cbuf = buf;
 
     while (wait_read > 1)
     {

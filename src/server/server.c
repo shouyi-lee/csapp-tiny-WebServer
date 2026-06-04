@@ -29,7 +29,7 @@ int doit(rio_t* rp)
     parse_http_request(&clientrequest);
 
     int keep_alive;
-    parse_http_request_head(rp, &keep_alive);
+    parse_http_request_head(rp, &keep_alive, &clientrequest);
     parse_url(&clientrequest);
 
     if (!clientrequest.is_suport_method)
@@ -55,7 +55,10 @@ int doit(rio_t* rp)
     if (clientrequest.is_static)
         serve_static(rp, &clientrequest);
     else
+    {
         serve_dynamic(rp, &clientrequest);
+        keep_alive = 0;
+    }
 
     return keep_alive;
 }
@@ -77,7 +80,8 @@ ssize_t serve_init()
 {
     for (size_t i = 0; i < SERVE_THREAD_NUM; i++)
     {
-        pthread_create(&pid[i], NULL, serve, NULL);
+        if (pthread_create(&pid[i], NULL, serve, NULL))
+            return -1;
         pthread_detach(pid[i]);
     }
 

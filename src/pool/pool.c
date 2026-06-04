@@ -52,8 +52,13 @@ ssize_t pool_init()
     sem_init(&customer_space_used, 0, 0);
 
     wake_fd = eventfd(0, 0);
+    if (wake_fd < 0) return -1;
 
-    pthread_create(&register_pth, NULL, task_search, NULL);
+    if (pthread_create(&register_pth, NULL, task_search, NULL))
+    {
+        close(wake_fd);
+        return -1;
+    }
     pthread_detach(register_pth);
 
     return 0;
@@ -116,18 +121,27 @@ void *task_search(void *args)
             continue;
         }
 
+        if (FD_ISSET(wake_fd, &serve_fds))
+        {
+            uint64_t u64;
+            ssize_t res = read(wake_fd, &u64, 8);
+            (void) res;
+        }
+
         for (size_t i = 0; i < CUSTOMER_NUM; i++)
         {
-            if (RIO_ISSET(&customer_table[i].rio, &serve_fds))
-                task_register(&customer_table[i]);
+            if (!RIO_ISSET(&customer_table[i].rio, &serve_fds))
+                continue;
 
-            if (FD_ISSET(wake_fd, &serve_fds))
+            pthread_mutex_lock(&customer_table[i].mutex);
+            if (customer_table[i].used == 1 && customer_table[i].dealing == 0)
             {
-                uint64_t u64;
-                ssize_t res = read(wake_fd, &u64, 8);
-                (void) res;
-                break;
+                customer_table[i].dealing = 1;
+                pthread_mutex_unlock(&customer_table[i].mutex);
+                task_register(&customer_table[i]);
             }
+            else
+                pthread_mutex_unlock(&customer_table[i].mutex);
         }
     }
 
@@ -137,10 +151,6 @@ void *task_search(void *args)
 ssize_t task_register(customer_t *customer)
 {
     sem_wait(&task_free);
-
-    pthread_mutex_lock(&customer->mutex);
-    customer->dealing = 1;
-    pthread_mutex_unlock(&customer->mutex);
 
     pthread_mutex_lock(&mutex);
     top = (top + 1) % TASK_NUM;
@@ -196,6 +206,11 @@ ssize_t customer_add(int fd, void *client_info, size_t client_info_len)
         else
             pthread_mutex_unlock(&this_customer->mutex);
     }
+    if (index >= CUSTOMER_NUM)
+    {
+        sem_post(&customer_space_free);
+        return -1;
+    }
     customer_t *customer = &customer_table[index];
 
     customer->used = 1;
@@ -216,6 +231,13 @@ ssize_t customer_add(int fd, void *client_info, size_t client_info_len)
 
 ssize_t customer_delete(customer_t *customer)
 {
+    pthread_mutex_lock(&customer->mutex);
+    if (customer->used == 0) {
+        pthread_mutex_unlock(&customer->mutex);
+        return 0;
+    }
+    pthread_mutex_unlock(&customer->mutex);
+
     sem_wait(&customer_space_used);
     pthread_mutex_lock(&customer->mutex);
     

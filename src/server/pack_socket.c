@@ -16,9 +16,10 @@ int open_listenfd(const char *port)
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_flags |= AI_ADDRCONFIG | AI_NUMERICSERV | AI_PASSIVE;
 
-    getaddrinfo(NULL, port, &hints, &res);
+    int rc = getaddrinfo(NULL, port, &hints, &res);
+    if (rc != 0) return -1;
 
-    int listenfd, opt;
+    int listenfd, opt = 1;
     for (p = res; p != NULL; p = p->ai_next)
     {
         listenfd = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
