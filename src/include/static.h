@@ -4,6 +4,6 @@
 #include "rio_io.h"
 #include "request.h"
 
-void serve_static(rio_t *rp, http_request_t *hrp);
+ssize_t serve_static(rio_t *rp, http_request_t *hrp);
 
 #endif
