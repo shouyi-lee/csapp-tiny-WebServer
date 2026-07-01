@@ -42,7 +42,7 @@ static ssize_t get_file_info(http_request_t *hrp, char *filetype, size_t *filele
     const char *filename = hrp->filename;
 
     if (stat(filename, &filestat) != 0) return -1;
-    if (filestat.st_size < 0 || filestat.st_size > __SIZE_MAX__) return -1;
+    if (filestat.st_size < 0 || (size_t)filestat.st_size > __SIZE_MAX__) return -1;
     *filelength = filestat.st_size;
     
     const char *dot = strrchr(filename, '.');

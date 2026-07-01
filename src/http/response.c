@@ -48,9 +48,7 @@ ssize_t send_responseline(rio_t *rp, const char *version, const char* code, cons
 {
     char buf[BUFLEN];
 
-    char *real_message = message;
-    if (real_message == NULL)
-        real_message = http_status_desc(code);
+    const char *real_message = message == NULL ? http_status_desc(code) : message;
 
     int len = snprintf(buf, BUFLEN, "%s %s %s\r\n", version, code, real_message);
     if (len >= BUFLEN || len < 0) return -1;
@@ -73,9 +71,7 @@ ssize_t send_responsehead(rio_t *rp, const char *head_name, const char *head_dat
 //只要构建sendbuf时也使用BUFLEN，是健壮的。
 ssize_t build_responseline(char *sendbuf, const char *version, const char* code, const char *message)
 {
-    char *real_message = message;
-    if (real_message == NULL)
-        real_message = http_status_desc(code);
+    const char *real_message = message == NULL ? http_status_desc(code) : message;
 
     int len = snprintf(sendbuf, BUFLEN, "%s %s %s\r\n", version, code, real_message);
     if (len >= BUFLEN || len < 0) return -1;
