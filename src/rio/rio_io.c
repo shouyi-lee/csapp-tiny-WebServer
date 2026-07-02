@@ -146,3 +146,44 @@ ssize_t rio_deinit(rio_t *rp)
     close(rp->rio_fd);
     return 0;
 }
+
+ssize_t rio_readline(int fd, char *buf, size_t nbytes)
+{
+    size_t wait_read = nbytes;
+    char tem;
+
+    while (wait_read > 0)
+    {
+        if (wait_read == 1)
+        {
+            buf[nbytes - wait_read] = '\0';
+            break;
+        }
+
+        ssize_t rc = read(fd, &tem, 1);
+        if (rc < 0)
+        {
+            if (errno == EINTR)
+                continue;
+            else
+                return -1;
+        } 
+        else if (rc == 0)
+            break;
+        
+        buf[nbytes - wait_read] = tem;
+
+        if (tem == '\0')
+            break;
+            
+        wait_read--;
+        
+        if (tem == '\n')
+        {
+            buf[nbytes - wait_read] = '\0';
+            break;
+        }
+    }
+
+    return nbytes - wait_read;
+}

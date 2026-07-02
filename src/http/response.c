@@ -40,6 +40,9 @@ ssize_t clienterror(rio_t *rp, const char *code)
 {
     const char *message = http_status_desc(code);
     if (send_responseline(rp, "HTTP/1.1", code, message) < 0) return -1;
+    if (!strcmp("501", code))
+        if (send_responsehead(rp, "Connection", "close") < 0)
+            return -1;
     if (send_responsehead(rp, NULL, NULL) < -1) return -1;
     return 0;
 }

@@ -5,7 +5,6 @@
 #define REQUEST_HEAD_NUM 48
 
 typedef struct {
-    char request_line[BUFLEN];
     char filename[BUFLEN];
     char url[BUFLEN];
     char method[BUFLEN];
@@ -14,10 +13,11 @@ typedef struct {
     int is_static;
     int is_suport_method;
     int is_suport_url;
-    //char request_head[REQUEST_HEAD_NUM][BUFLEN];
+    int is_valid_request;
+    int keep_alive;
 } http_request_t;
 
-void parse_http_request(http_request_t *hrp);
-void parse_http_request_head(rio_t *rp, int *keep_alive);
+void parse_http_request_line(int fd, http_request_t *hrp);
+void parse_http_request_head(int fd, http_request_t *hrp);
 
 #endif

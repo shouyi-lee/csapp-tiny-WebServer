@@ -1,6 +1,7 @@
 #include "config.h"
 #include "log.h"
 #include "rio_io.h"
+#include "time_stamp.h"
 #include <unistd.h>
 #include <stdio.h>
 #include <sys/socket.h>
@@ -10,31 +11,31 @@
 #include <sys/fcntl.h>
 #include <sys/mman.h>
 #include <string.h>
+#include <pthread.h>
 
-static rio_t log_file;
+static int log_file_fd;
+pthread_mutex_t mutex;
 
-ssize_t log_customeraddr(const char *hostname, const char *port)
+/*需要调用者自己保证log_unit合法, 或者说总长度不会大于buflen。log_unit的file_length字段如果响应码非200则为'-'字符*/
+ssize_t log_request(log_unit_t *log_unit)
 {
-    char buf[BUFLEN];
-    sprintf(buf, "receive connection form %s:%s\n", hostname, port);
-    rio_writenb(&log_file, buf, strlen(buf));
-    return 0;
-}
+    char writebuf[BUFLEN];
+    if (time_stamp(writebuf) == NULL) return -1;
 
-ssize_t log_requestline(const char* requestline)
-{
-    return rio_writenb(&log_file, requestline, strlen(requestline));
-}
+    int rc1 = sprintf(writebuf, " [info] %s %s -> %s %s\n", log_unit->method, log_unit->url, log_unit->file_stat, log_unit->file_length);
+    if (rc1 < 0) return -1;
 
-ssize_t log_requesthead(const char *requsthead)
-{
-    return rio_writenb(&log_file, requsthead, strlen(requsthead));
+    pthread_mutex_lock(&mutex);
+    ssize_t rc2 = rio_writen(log_file_fd, writebuf, (size_t)rc1);
+    pthread_mutex_unlock(&mutex);
+
+    return rc2;
 }
 
 ssize_t log_init()
 {
     int fd = open("./log_file/server_log", O_CREAT | O_RDWR | O_APPEND, 0644);
     if (fd < 0) return -1;
-    rio_init(&log_file, fd);
+    log_file_fd = fd;
     return 0;
 }

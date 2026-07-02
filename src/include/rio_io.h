@@ -25,5 +25,6 @@ ssize_t rio_readnb(rio_t* rp, const char *buf, size_t nbytes);
 ssize_t rio_readlineb(rio_t *rp, const char *buf, size_t nbytes);
 ssize_t rio_writenb(rio_t *rp, const char *buf, size_t nbytes);
 ssize_t rio_deinit(rio_t *rp);
+ssize_t rio_readline(int fd, char *buf, size_t nbytes);
 
 #endif

@@ -22,25 +22,23 @@
 
 pthread_t pid[SERVE_THREAD_NUM];
 
-int doit(rio_t* rp)
+ssize_t doit(rio_t* rp)
 {
-    http_request_t clientrequest = {0};
-    if (rio_readlineb(rp, clientrequest.request_line, BUFLEN) <= 0) return 0;
-    parse_http_request(&clientrequest);
+    http_request_t clientrequest = {};
 
-    int keep_alive;
-    parse_http_request_head(rp, &keep_alive);
-    parse_url(&clientrequest);
-
-    if (keep_alive == 0)
-        return keep_alive;
+    parse_http_request_line(rp->rio_fd, &clientrequest);
+    if (clientrequest.is_valid_request == 0)
+        return -1;
 
     if (!clientrequest.is_suport_method)
     {
         clienterror(rp, "501");
-        return 0;
+        return -1;
     }
 
+    parse_http_request_head(rp->rio_fd, &clientrequest);
+
+    parse_url(&clientrequest);
     if (!clientrequest.is_suport_url)
     {
         clienterror(rp, "404");
@@ -60,7 +58,7 @@ int doit(rio_t* rp)
     else
         serve_dynamic(rp, &clientrequest);
 
-    return keep_alive;
+    return clientrequest.keep_alive;
 }
 
 void *serve(void *args)
@@ -70,6 +68,7 @@ void *serve(void *args)
     {
         task_t task = task_fetch();
         task.keep_alive = doit(&task.customer->rio);
+        if (task.keep_alive <= 0) task.keep_alive = 0;
         task_return(task);
     }
 
