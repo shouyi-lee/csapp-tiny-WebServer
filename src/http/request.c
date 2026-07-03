@@ -12,13 +12,13 @@ supported_method_t supported_methods[]
     "HEAD"
 };
 
-void parse_http_request_line(int fd, http_request_t *hrp)
+void parse_http_request_line(rio_t *rp, http_request_t *hrp)
 {
     hrp->is_suport_method = 0;
     hrp->is_valid_request = 0;
 
     char request_line[BUFLEN];
-    ssize_t read_r = rio_readline(fd, request_line, BUFLEN);
+    ssize_t read_r = rio_readlineb(rp, request_line, BUFLEN);
     if (read_r <= 0 || read_r == BUFLEN - 1)
         return;
 
@@ -39,7 +39,7 @@ void parse_http_request_line(int fd, http_request_t *hrp)
     return;
 }
 
-void parse_http_request_head(int fd, http_request_t *hrp)
+void parse_http_request_head(rio_t *rp, http_request_t *hrp)
 {
     hrp->keep_alive = 1;
     hrp->is_valid_request = 1;
@@ -48,7 +48,7 @@ void parse_http_request_head(int fd, http_request_t *hrp)
     
     do
     {
-        ssize_t read_r = rio_readline(fd, buf, BUFLEN);
+        ssize_t read_r = rio_readlineb(rp, buf, BUFLEN);
         if (read_r <= 0 || read_r >= BUFLEN - 1)
         {
             hrp->keep_alive = 0;

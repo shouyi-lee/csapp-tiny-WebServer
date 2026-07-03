@@ -26,7 +26,7 @@ ssize_t doit(rio_t* rp)
 {
     http_request_t clientrequest = {};
 
-    parse_http_request_line(rp->rio_fd, &clientrequest);
+    parse_http_request_line(rp, &clientrequest);
     if (clientrequest.is_valid_request == 0)
         return -1;
 
@@ -36,18 +36,12 @@ ssize_t doit(rio_t* rp)
         return -1;
     }
 
-    parse_http_request_head(rp->rio_fd, &clientrequest);
+    parse_http_request_head(rp, &clientrequest);
+    if (clientrequest.is_valid_request == 0)
+        return -1;
 
     parse_url(&clientrequest);
-    if (!clientrequest.is_suport_url)
-    {
-        clienterror(rp, "404");
-        return 0;
-    }
-
-    struct stat filestat;
-    stat(clientrequest.filename, &filestat);
-    if (!S_ISREG(filestat.st_mode) || !(S_IRUSR & filestat.st_mode))
+    if (!clientrequest.is_valid_url)
     {
         clienterror(rp, "404");
         return 0;
@@ -67,8 +61,7 @@ void *serve(void *args)
     for (;;)
     {
         task_t task = task_fetch();
-        task.keep_alive = doit(&task.customer->rio);
-        if (task.keep_alive <= 0) task.keep_alive = 0;
+        task.keep_alive = doit(&task.customer->rio) <= 0 ? 0 : 1;
         task_return(task);
     }
 

@@ -12,12 +12,12 @@ typedef struct {
     char cgiargs[BUFLEN];
     int is_static;
     int is_suport_method;
-    int is_suport_url;
+    int is_valid_url;
     int is_valid_request;
     int keep_alive;
 } http_request_t;
 
-void parse_http_request_line(int fd, http_request_t *hrp);
-void parse_http_request_head(int fd, http_request_t *hrp);
+void parse_http_request_line(rio_t *rp, http_request_t *hrp);
+void parse_http_request_head(rio_t *rp, http_request_t *hrp);
 
 #endif
