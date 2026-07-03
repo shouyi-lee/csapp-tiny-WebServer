@@ -60,7 +60,7 @@ static ssize_t get_file_info(http_request_t *hrp, char *filetype, size_t *filele
     return 0;
 }
 
-//需要调用者保证 hrp合法，例如文件名长度不超过buflen。本函数是健壮的吗？依赖于BUFLEN需要足够大，因为未做消息超长处理。
+/*需要调用者保证 hrp合法，例如文件名长度不超过buflen。本函数是健壮的吗？依赖于BUFLEN需要足够大，因为未做消息超长处理。*/
 ssize_t serve_static(rio_t *rp, http_request_t *hrp)
 {
     char filetype[BUFLEN];

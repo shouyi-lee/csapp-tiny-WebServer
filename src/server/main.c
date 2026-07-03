@@ -31,7 +31,7 @@ int main(int argc, char *argv[])
     if (pool_init() < 0)
     {
         fprintf(stdout, "init pool failed\n");
-        pool_deinit();
+        pool_destroy();
         return -1;
     }
 
@@ -59,7 +59,6 @@ int main(int argc, char *argv[])
 
         char hostname[1024], port[1024];
         getnameinfo(clientp, clientlen, hostname, 1024, port, 1024, NI_NUMERICHOST|NI_NUMERICSERV);   
-        //log_customeraddr(hostname, port);
 
         customer_add(confd, clientp, clientlen);
     }

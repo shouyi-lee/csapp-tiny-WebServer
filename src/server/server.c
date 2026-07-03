@@ -60,8 +60,8 @@ void *serve(void *args)
     (void) args;
     for (;;)
     {
-        task_t task = task_fetch();
-        task.keep_alive = doit(&task.customer->rio) <= 0 ? 0 : 1;
+        task_t task = task_acquire();
+        task.reuse = doit(&task.customer->rio) <= 0 ? 0 : 1;
         task_return(task);
     }
 
