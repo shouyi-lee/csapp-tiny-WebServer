@@ -95,7 +95,13 @@ ssize_t task_register(customer_t *customer)
 
     sem_post(&task_available);
 
-    epoll_ctl(epoll_fd, EPOLL_CTL_DEL, customer->rio.rio_fd, NULL);
+    retry: ssize_t rc = epoll_ctl(epoll_fd, EPOLL_CTL_DEL, task.customer->rio.rio_fd, NULL);
+    if (rc < 0)
+    {
+        if (errno == EINTR)
+            goto retry;
+        exit(-1);
+    }
 
     return 0;
 }
@@ -149,7 +155,7 @@ ssize_t customer_add(int fd, void *client_info, size_t client_info_len)
     {
         this_customer = &customer_table[index];
         pthread_mutex_lock(&this_customer->mutex);
-        if (this_customer->busy == 0)
+        if (this_customer->occupied == 0)
             break;
         else
             pthread_mutex_unlock(&this_customer->mutex);
@@ -177,6 +183,7 @@ ssize_t customer_add(int fd, void *client_info, size_t client_info_len)
     return 0;
 }
 
+/*只能由task_return调用*/
 ssize_t customer_delete(customer_t *customer)
 {
     sem_wait(&customer_space_occupied);

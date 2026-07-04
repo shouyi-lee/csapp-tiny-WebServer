@@ -5,6 +5,6 @@
 
 ssize_t serve_init();
 
-#define SERVE_THREAD_NUM 1
+#define SERVE_THREAD_NUM 16
 
 #endif
