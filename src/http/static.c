@@ -88,7 +88,6 @@ ssize_t serve_static(rio_t *rp, http_request_t *hrp)
         return 0;
 
     ssize_t send_rc = sendfile(rp->rio_fd, fd, NULL, filelength);
-    close(fd);
     return send_rc > 0 ? 0 : send_rc;
 
     file_get_error:
