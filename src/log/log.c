@@ -21,12 +21,29 @@ ssize_t log_request(log_unit_t *log_unit)
 {
     char writebuf[BUFLEN];
     if (time_stamp(writebuf) == NULL) return -1;
+    size_t time_len = strlen(writebuf);
 
-    int rc1 = sprintf(writebuf, " [info] %s %s -> %s %s\n", log_unit->method, log_unit->url, log_unit->file_stat, log_unit->file_length);
+    int rc1 = sprintf(writebuf + time_len, " [info] %s %s -> %s\n", log_unit->method, log_unit->url, log_unit->file_stat);
     if (rc1 < 0) return -1;
 
     pthread_mutex_lock(&mutex);
-    ssize_t rc2 = rio_writen(log_file_fd, writebuf, (size_t)rc1);
+    ssize_t rc2 = rio_writen(log_file_fd, writebuf, (size_t)rc1 + time_len);
+    pthread_mutex_unlock(&mutex);
+
+    return rc2;
+}
+
+ssize_t log_error(log_unit_t *log_unit)
+{
+    char writebuf[BUFLEN];
+    if (time_stamp(writebuf) == NULL) return -1;
+    size_t time_len = strlen(writebuf);
+
+    int rc1 = sprintf(writebuf + time_len, " [error]: file dose not exist %s %s\n", log_unit->method, log_unit->url);
+    if (rc1 < 0) return -1;
+
+    pthread_mutex_lock(&mutex);
+    ssize_t rc2 = rio_writen(log_file_fd, writebuf, (size_t)rc1 + time_len);
     pthread_mutex_unlock(&mutex);
 
     return rc2;

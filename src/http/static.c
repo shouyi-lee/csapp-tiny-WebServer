@@ -91,6 +91,7 @@ ssize_t serve_static(rio_t *rp, http_request_t *hrp)
     return send_rc > 0 ? 0 : send_rc;
 
     file_get_error:
+    hrp->is_valid_url = 0;
     ssize_t error_rc = clienterror(rp, "404");
     return error_rc;
 }

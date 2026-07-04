@@ -44,13 +44,24 @@ ssize_t doit(rio_t* rp)
     if (!clientrequest.is_valid_url)
     {
         clienterror(rp, "404");
-        return 0;
+        return 1;
     }
 
-    if (clientrequest.is_static)
-        serve_static(rp, &clientrequest);
-    else
-        serve_dynamic(rp, &clientrequest);
+    ssize_t serve_rc = serve_static(rp, &clientrequest);
+
+    log_unit_t log = 
+    {
+        .method = clientrequest.method,
+        .url = clientrequest.url,
+        .file_stat = clientrequest.is_valid_url > 0 ? "exist" : "unexist", 
+    };
+
+    if (serve_rc < 0)
+    {
+        log_error(&log);
+        return -1;
+    }
+    log_request(&log);
 
     return clientrequest.keep_alive;
 }
