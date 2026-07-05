@@ -22,45 +22,88 @@
 
 pthread_t pid[SERVE_THREAD_NUM];
 
-int doit(rio_t* rp)
+ssize_t doit(rio_t* rp, int *reuse)
 {
-    http_request_t clientrequest = {0};
-    if (rio_readlineb(rp, clientrequest.request_line, BUFLEN) <= 0) return 0;
-    parse_http_request(&clientrequest);
+    http_request_t clientrequest;
+    log_unit_t log = {
+        .err_stat = "-",
+        .method = "-",
+        .url = "-"
+    };
+    *reuse = 1;
 
-    int keep_alive;
-    parse_http_request_head(rp, &keep_alive, &clientrequest);
-    parse_url(&clientrequest);
+    parse_http_request_line(rp, &clientrequest);
+    if (clientrequest.is_valid_request == 0)
+    {
+        if (clientrequest.have_receive_request)
+        {
+            log.err_stat = "invalid_request";
+            log.method = clientrequest.raw_request;
+            (void)log_error(&log);
+        }
+        *reuse = 0;
+        return -1;
+    }
+    log.method = clientrequest.method;
+    log.url = clientrequest.url;
 
     if (!clientrequest.is_suport_method)
     {
         clienterror(rp, "501");
-        return 0;
+        *reuse = 0;
+        log.err_stat = "unsuported method";
+        (void)log_error(&log);
+        return -1;
     }
 
-    if (!clientrequest.is_suport_url)
+    parse_http_request_head(rp, &clientrequest);
+    if (clientrequest.is_valid_request_head == 0)
+    {
+        log.err_stat = "invalid request head";
+        (void)log_error(&log);
+        *reuse = 0;
+        return -1;
+    }
+    *reuse = clientrequest.keep_alive;
+
+    parse_url(&clientrequest);
+    if (!clientrequest.is_valid_url)
     {
         clienterror(rp, "404");
-        return 0;
+        log.err_stat = "invalid url";
+        (void)log_error(&log);
+        return -1;
     }
 
-    struct stat filestat;
-    stat(clientrequest.filename, &filestat);
-    if (!S_ISREG(filestat.st_mode) || !(S_IRUSR & filestat.st_mode))
-    {
-        clienterror(rp, "404");
-        return 0;
-    }
-
+    ssize_t serve_rc;
     if (clientrequest.is_static)
-        serve_static(rp, &clientrequest);
+        serve_rc = serve_static(rp, &clientrequest);
     else
     {
         serve_dynamic(rp, &clientrequest);
-        keep_alive = 0;
+        serve_rc = 0;
+        *reuse = 0;
     }
 
-    return keep_alive;
+    if (!clientrequest.is_valid_url)
+    {
+        clienterror(rp, "404");
+        log.err_stat = "invalid url";
+        (void)log_error(&log);
+        return -1;
+    }
+
+    if (serve_rc < 0)
+    {
+        log.err_stat = "send error";
+        (void)log_error(&log);
+        *reuse = 0;
+        return -1;
+    }
+
+    log_request(&log);
+
+    return 0;
 }
 
 void *serve(void *args)
@@ -68,8 +111,9 @@ void *serve(void *args)
     (void) args;
     for (;;)
     {
-        task_t task = task_fetch();
-        task.keep_alive = doit(&task.customer->rio);
+        task_t task = task_acquire();
+        ssize_t rc = doit(&task.customer->rio, &task.reuse);
+        (void)rc;
         task_return(task);
     }
 
@@ -80,8 +124,7 @@ ssize_t serve_init()
 {
     for (size_t i = 0; i < SERVE_THREAD_NUM; i++)
     {
-        if (pthread_create(&pid[i], NULL, serve, NULL))
-            return -1;
+        pthread_create(&pid[i], NULL, serve, NULL);
         pthread_detach(pid[i]);
     }
 

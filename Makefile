@@ -3,8 +3,9 @@ TARGET ?= webserver
 TARGET_PATH := $(TARGET)
 LOG_DIR := log_file
 RUN_PORT ?= 1145
-RUN_COND ?= 
+RUN_COND ?= &
 BASIC_HTML ?= website/index.html
+DEBUG ?= f
 
 SRCS := $(shell find src -type f -name '*.c' | sort)
 OBJS := $(SRCS:.c=.o)
@@ -12,7 +13,14 @@ DEPS := $(OBJS:.o=.d)
 
 CPPFLAGS ?=
 CPPFLAGS += -Isrc/include
-CFLAGS ?= -Wall -Wextra -O2 -std=gnu11
+
+CFLAGS ?= -Wall -Wextra -std=gnu11
+ifeq ($(DEBUG), f)
+CFLAGS += -O2
+else
+CFLAGS += -g
+endif
+
 DEPFLAGS := -MMD -MP
 LDFLAGS ?=
 LDLIBS ?=
@@ -21,7 +29,6 @@ RM ?= rm -f
 .PHONY: all clean rebuild run
 
 all: $(TARGET_PATH)
-
 
 $(TARGET_PATH): $(OBJS)
 	$(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)

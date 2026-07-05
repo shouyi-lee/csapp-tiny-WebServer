@@ -1,6 +1,7 @@
 #include "config.h"
 #include "parse_url.h"
 #include <stdio.h>
+#include <sys/stat.h>
 #include <string.h>
 
 static int hex_val(char c)
@@ -33,23 +34,45 @@ static void url_decode(char *dst, const char *src)
     *dst = '\0';
 }
 
+//健壮的
 void parse_url(http_request_t *hrp)
 {
+    // URL percent-decode first (deepseek-dev feature)
     char decoded[BUFLEN];
     url_decode(decoded, hrp->url);
     memcpy(hrp->url, decoded, BUFLEN);
 
+    hrp->is_valid_url = 0;
+    hrp->is_static = 1;
+
     if (!strcmp("/", hrp->url))
         strcpy(hrp->url, "/index.html");
 
-    if (strstr(hrp->url, ".."))
-    {
-        hrp->is_suport_url = 0;
-        return;
-    }
-    else
-        hrp->is_suport_url = 1;
+    // file_level-based path traversal protection (master improvement)
+    ssize_t file_level = 0;
+    char *neddle1 = hrp->url;
+    char *neddle2 = strchr(hrp->url + 1, '/');
 
+    while (neddle2 != NULL)
+    {
+        if (!strncmp("/..", neddle1, neddle2 - neddle1))
+            file_level--;
+        else if (strncmp("/.", neddle1, neddle2 - neddle1))
+            file_level++;
+
+        neddle1 = neddle2;
+        neddle2 = strchr(neddle1 + 1, '/');
+    }
+
+    if (!strcmp("/..", neddle1))
+        file_level--;
+    else if (strcmp("/.", neddle1))
+        file_level++;
+
+    if (file_level <= 0)
+        return;
+
+    // CGI detection (deepseek-dev feature)
     if (strstr(hrp->url, "cgi-bin"))
     {
         hrp->is_static = 0;
@@ -62,9 +85,16 @@ void parse_url(http_request_t *hrp)
         else
             strcpy(hrp->cgiargs, "");
     }
-    else
-        hrp->is_static = 1;
 
     strcpy(hrp->filename, "./website");
     strcat(hrp->filename, hrp->url);
+
+    // stat validation (master improvement)
+    struct stat filestat = {};
+    if (stat(hrp->filename, &filestat) < 0)
+        return;
+    if (!S_ISREG(filestat.st_mode) || !(S_IRUSR & filestat.st_mode))
+        return;
+
+    hrp->is_valid_url = 1;
 }

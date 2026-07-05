@@ -10,7 +10,6 @@
 #include <netdb.h>
 #include <unistd.h>
 #include <string.h>
-#include <errno.h>
 #include <sys/select.h>
 
 int main(int argc, char *argv[])
@@ -32,7 +31,7 @@ int main(int argc, char *argv[])
     if (pool_init() < 0)
     {
         fprintf(stdout, "init pool failed\n");
-        pool_deinit();
+        pool_destroy();
         return -1;
     }
 
@@ -56,20 +55,13 @@ int main(int argc, char *argv[])
         struct sockaddr *clientp = (struct sockaddr*)&client;
 
         int confd = accept(listenfd, clientp, &clientlen);
-        if (confd < 0)
-        {
-            if (errno == EINTR) continue;
-            usleep(100000);
-            continue;
-        }
+        if (confd < 0) continue;
 
         char hostname[1024], port[1024];
         getnameinfo(clientp, clientlen, hostname, 1024, port, 1024, NI_NUMERICHOST|NI_NUMERICSERV);   
-        //log_customeraddr(hostname, port);
 
         customer_add(confd, clientp, clientlen);
     }
 
-    close(listenfd);
     return 0;
 }

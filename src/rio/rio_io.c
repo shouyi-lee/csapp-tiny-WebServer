@@ -11,11 +11,10 @@ ssize_t rio_readn(int fd, char* buf, size_t nbytes)
 {
     ssize_t rc, wait_read;
     wait_read = nbytes;
-    char *cbuf = buf;
 
     while (wait_read > 0)
     {
-        rc = read(fd, cbuf + nbytes - wait_read, wait_read);
+        rc = read(fd, buf + nbytes - wait_read, wait_read);
         if (rc < 0)
         {
             if (errno == EINTR)
@@ -31,7 +30,7 @@ ssize_t rio_readn(int fd, char* buf, size_t nbytes)
     return nbytes - wait_read;
 }
 
-ssize_t rio_writen(int fd, const char* buf, size_t nbytes)
+ssize_t rio_writen(int fd, char* buf, size_t nbytes)
 {
     ssize_t wc, wait_write;
     wait_write = nbytes;
@@ -63,7 +62,6 @@ void rio_init(rio_t *rp, int fd)
 
 ssize_t rio_read(rio_t* rp, char* buf, size_t nbytes)
 {
-    char *cbuf = buf;
 
     while (rp->rio_cnt <= 0)
     {
@@ -81,7 +79,7 @@ ssize_t rio_read(rio_t* rp, char* buf, size_t nbytes)
     }
 
     int cnt = (signed)nbytes > rp->rio_cnt ? rp->rio_cnt : (signed)nbytes;
-    memcpy(cbuf, rp->riobuf_ptr, cnt);
+    memcpy(buf, rp->riobuf_ptr, cnt);
     rp->rio_cnt -= cnt;
     rp->riobuf_ptr += cnt;
 
@@ -111,7 +109,7 @@ ssize_t rio_readlineb(rio_t *rp, char *buf, size_t nbytes)
 {
     ssize_t rc, wait_read;
     wait_read = nbytes;
-    char tem, *cbuf = buf;
+    char tem;
 
     while (wait_read > 1)
     {
@@ -125,18 +123,18 @@ ssize_t rio_readlineb(rio_t *rp, char *buf, size_t nbytes)
             return 0;
         }
 
-        cbuf[nbytes -wait_read] = tem;
+        buf[nbytes -wait_read] = tem;
         wait_read -= rc;
 
         if (tem == '\n')
             break;
     }
 
-    cbuf[nbytes - wait_read] = '\0';
+    buf[nbytes - wait_read] = '\0';
     return nbytes - wait_read;
 }
 
-ssize_t rio_writenb(rio_t *rp, const char *buf, size_t nbytes)
+ssize_t rio_writenb(rio_t *rp, char *buf, size_t nbytes)
 {
     return rio_writen(rp->rio_fd, buf, nbytes);
 }
@@ -145,4 +143,41 @@ ssize_t rio_deinit(rio_t *rp)
 {
     close(rp->rio_fd);
     return 0;
+}
+
+ssize_t rio_readline(int fd, char *buf, size_t nbytes)
+{
+    size_t wait_read = nbytes;
+    char tem;
+
+    while (wait_read > 0)
+    {
+        if (wait_read == 1)
+        {
+            buf[nbytes - wait_read] = '\0';
+            break;
+        }
+
+        ssize_t rc = read(fd, &tem, 1);
+        if (rc < 0)
+        {
+            if (errno == EINTR)
+                continue;
+            else
+                return -1;
+        } 
+        else if (rc == 0)
+            break;
+        
+        buf[nbytes - wait_read] = tem;
+        wait_read--;
+        
+        if (tem == '\n')
+        {
+            buf[nbytes - wait_read] = '\0';
+            break;
+        }
+    }
+
+    return nbytes - wait_read;
 }
