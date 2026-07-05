@@ -59,4 +59,4 @@ YYYY-MM-DD HH:MM:SS [info] METHOD /path -> 200 OK
 YYYY-MM-DD HH:MM:SS [error]: 错误类型     METHOD /path
 ```
 
-支持的错误日志类型：`invalid_request`、`unsuported method`、`invalid request head`、`invalid url`、`send error`
+支持的错误日志类型：`invalid request`、`unsuported method`、`invalid request head`、`invalid url`、`send error`
