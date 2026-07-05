@@ -37,7 +37,7 @@ ssize_t doit(rio_t* rp, int *reuse)
     {
         if (clientrequest.have_receive_request)
         {
-            log.err_stat = "invalid_request";
+            log.err_stat = "invalid request";
             log.method = clientrequest.raw_request;
             (void)log_error(&log);
         }
