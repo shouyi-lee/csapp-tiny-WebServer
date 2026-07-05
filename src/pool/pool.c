@@ -93,8 +93,6 @@ ssize_t task_register(customer_t *customer)
     task_table[tail] = task;
     pthread_mutex_unlock(&mutex);
 
-    sem_post(&task_available);
-
     retry: ssize_t rc = epoll_ctl(epoll_fd, EPOLL_CTL_DEL, task.customer->rio.rio_fd, NULL);
     if (rc < 0)
     {
@@ -102,6 +100,8 @@ ssize_t task_register(customer_t *customer)
             goto retry;
         exit(-1);
     }
+
+    sem_post(&task_available);
 
     return 0;
 }
