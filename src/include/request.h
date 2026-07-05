@@ -10,10 +10,13 @@ typedef struct {
     char method[BUFLEN];
     char version[BUFLEN];
     char cgiargs[BUFLEN];
+    char raw_request[BUFLEN];
     int is_static;
     int is_suport_method;
     int is_valid_url;
     int is_valid_request;
+    int is_valid_request_head;
+    int have_receive_request;
     int keep_alive;
 } http_request_t;
 

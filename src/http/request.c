@@ -16,13 +16,15 @@ void parse_http_request_line(rio_t *rp, http_request_t *hrp)
 {
     hrp->is_suport_method = 0;
     hrp->is_valid_request = 0;
+    hrp->have_receive_request = 0;
 
-    char request_line[BUFLEN];
-    ssize_t read_r = rio_readlineb(rp, request_line, BUFLEN);
+    ssize_t read_r = rio_readlineb(rp, hrp->raw_request, BUFLEN);
     if (read_r <= 0 || read_r == BUFLEN - 1)
         return;
 
-    if (sscanf(request_line, "%s %s %s",
+    hrp->have_receive_request = 1;
+
+    if (sscanf(hrp->raw_request, "%s %s %s",
         hrp->method, hrp->url, hrp->version) != 3)
         return;
 
@@ -42,7 +44,7 @@ void parse_http_request_line(rio_t *rp, http_request_t *hrp)
 void parse_http_request_head(rio_t *rp, http_request_t *hrp)
 {
     hrp->keep_alive = 1;
-    hrp->is_valid_request = 1;
+    hrp->is_valid_request_head = 1;
 
     char buf[BUFLEN];
     
@@ -52,7 +54,7 @@ void parse_http_request_head(rio_t *rp, http_request_t *hrp)
         if (read_r <= 0 || read_r >= BUFLEN - 1)
         {
             hrp->keep_alive = 0;
-            hrp->is_valid_request = 0;
+            hrp->is_valid_request_head = 0;
         }
 
         char *cmp_r = strcasestr(buf, "connection");

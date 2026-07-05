@@ -23,7 +23,7 @@ ssize_t log_request(log_unit_t *log_unit)
     if (time_stamp(writebuf) == NULL) return -1;
     size_t time_len = strlen(writebuf);
 
-    int rc1 = sprintf(writebuf + time_len, " [info] %s %s -> %s\n", log_unit->method, log_unit->url, log_unit->file_stat);
+    int rc1 = sprintf(writebuf + time_len, " [info] %s %s -> %s\n", log_unit->method, log_unit->url, "200 OK");
     if (rc1 < 0) return -1;
 
     pthread_mutex_lock(&mutex);
@@ -39,7 +39,7 @@ ssize_t log_error(log_unit_t *log_unit)
     if (time_stamp(writebuf) == NULL) return -1;
     size_t time_len = strlen(writebuf);
 
-    int rc1 = sprintf(writebuf + time_len, " [error]: file dose not exist %s %s\n", log_unit->method, log_unit->url);
+    int rc1 = sprintf(writebuf + time_len, " [error]: %s \t\t%s %s\n", log_unit->err_stat, log_unit->method, log_unit->url);
     if (rc1 < 0) return -1;
 
     pthread_mutex_lock(&mutex);

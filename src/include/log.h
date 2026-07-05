@@ -7,7 +7,7 @@ typedef struct
 {
     char *method;
     char *url;
-    char *file_stat;
+    char *err_stat;
 } log_unit_t;
 
 ssize_t log_request(log_unit_t *log_unit);

@@ -22,48 +22,78 @@
 
 pthread_t pid[SERVE_THREAD_NUM];
 
-ssize_t doit(rio_t* rp)
+ssize_t doit(rio_t* rp, int *reuse)
 {
-    http_request_t clientrequest = {};
+    http_request_t clientrequest;
+    log_unit_t log = {
+        .err_stat = "-",
+        .method = "-",
+        .url = "-"
+    };
+    *reuse = 1;
 
     parse_http_request_line(rp, &clientrequest);
     if (clientrequest.is_valid_request == 0)
+    {
+        log.err_stat = "invalid_request";
+        if (!clientrequest.have_receive_request)
+            log.method = clientrequest.raw_request;
+        (void)log_error(&log);
+        *reuse = 0;
         return -1;
+    }
+    log.method = clientrequest.method;
+    log.url = clientrequest.url;
 
     if (!clientrequest.is_suport_method)
     {
         clienterror(rp, "501");
+        *reuse = 0;
+        log.err_stat = "unsuported method";
+        (void)log_error(&log);
         return -1;
     }
 
     parse_http_request_head(rp, &clientrequest);
-    if (clientrequest.is_valid_request == 0)
+    if (clientrequest.is_valid_request_head == 0)
+    {
+        log.err_stat = "invalid request head";
+        (void)log_error(&log);
+        *reuse = 0;
         return -1;
+    }
+    *reuse = clientrequest.keep_alive;
 
     parse_url(&clientrequest);
     if (!clientrequest.is_valid_url)
     {
         clienterror(rp, "404");
-        return 1;
+        log.err_stat = "invalid url";
+        (void)log_error(&log);
+        return -1;
     }
 
     ssize_t serve_rc = serve_static(rp, &clientrequest);
 
-    log_unit_t log = 
+    if (!clientrequest.is_valid_url)
     {
-        .method = clientrequest.method,
-        .url = clientrequest.url,
-        .file_stat = clientrequest.is_valid_url > 0 ? "exist" : "unexist", 
-    };
+        clienterror(rp, "404");
+        log.err_stat = "invalid url";
+        (void)log_error(&log);
+        return -1;
+    }
 
     if (serve_rc < 0)
     {
-        log_error(&log);
+        log.err_stat = "send error";
+        (void)log_error(&log);
+        *reuse = 0;
         return -1;
     }
+
     log_request(&log);
 
-    return clientrequest.keep_alive;
+    return 0;
 }
 
 void *serve(void *args)
@@ -72,7 +102,8 @@ void *serve(void *args)
     for (;;)
     {
         task_t task = task_acquire();
-        task.reuse = doit(&task.customer->rio) <= 0 ? 0 : 1;
+        ssize_t rc = doit(&task.customer->rio, &task.reuse);
+        (void)rc;
         task_return(task);
     }
 
