@@ -16,14 +16,15 @@
 static int log_file_fd;
 pthread_mutex_t mutex;
 
-/*需要调用者自己保证log_unit合法, 或者说总长度不会大于buflen。log_unit的file_length字段如果响应码非200则为'-'字符*/
+/*需要调用者自己保证log_unit合法, 或者说其中每个字符串都有结束字节*/
 ssize_t log_request(log_unit_t *log_unit)
 {
     char writebuf[BUFLEN];
     if (time_stamp(writebuf) == NULL) return -1;
     size_t time_len = strlen(writebuf);
 
-    int rc1 = sprintf(writebuf + time_len, " [info] %s %s -> %s\n", log_unit->method, log_unit->url, "200 OK");
+    int rc1 = snprintf(writebuf + time_len, BUFLEN - time_len, " [info] %s %s -> %s\n", log_unit->method, log_unit->url, "200 OK");
+    if (rc1 >= BUFLEN - (int)time_len) rc1 = snprintf(writebuf + time_len, BUFLEN - time_len, " [error] method or url are too long to show\n");
     if (rc1 < 0) return -1;
 
     pthread_mutex_lock(&mutex);
@@ -33,13 +34,15 @@ ssize_t log_request(log_unit_t *log_unit)
     return rc2;
 }
 
+//调用者保证log_unit各字段有终止符号，且err_stat不超长
 ssize_t log_error(log_unit_t *log_unit)
 {
     char writebuf[BUFLEN];
     if (time_stamp(writebuf) == NULL) return -1;
     size_t time_len = strlen(writebuf);
 
-    int rc1 = sprintf(writebuf + time_len, " [error]: %s \t\t%s %s\n", log_unit->err_stat, log_unit->method, log_unit->url);
+    int rc1 = snprintf(writebuf + time_len, BUFLEN - time_len, " [error]: %s \t\t%s %s\n", log_unit->err_stat, log_unit->method, log_unit->url);
+    if (rc1 >= BUFLEN - (int)time_len) rc1 = snprintf(writebuf + time_len, BUFLEN - time_len, " [error] error: %s\tmethod or url are too long to show\n", log_unit->err_stat);
     if (rc1 < 0) return -1;
 
     pthread_mutex_lock(&mutex);

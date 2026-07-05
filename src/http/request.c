@@ -12,6 +12,7 @@ supported_method_t supported_methods[]
     "HEAD"
 };
 
+//健壮的
 void parse_http_request_line(rio_t *rp, http_request_t *hrp)
 {
     hrp->is_suport_method = 0;
@@ -19,10 +20,12 @@ void parse_http_request_line(rio_t *rp, http_request_t *hrp)
     hrp->have_receive_request = 0;
 
     ssize_t read_r = rio_readlineb(rp, hrp->raw_request, BUFLEN);
-    if (read_r <= 0 || read_r == BUFLEN - 1)
+    if (read_r <= 0)
         return;
-
     hrp->have_receive_request = 1;
+
+    if (read_r == BUFLEN - 1)
+        return;
 
     if (sscanf(hrp->raw_request, "%s %s %s",
         hrp->method, hrp->url, hrp->version) != 3)
@@ -41,6 +44,7 @@ void parse_http_request_line(rio_t *rp, http_request_t *hrp)
     return;
 }
 
+//健壮的，就是可能陷死在里面，但显然很难避免
 void parse_http_request_head(rio_t *rp, http_request_t *hrp)
 {
     hrp->keep_alive = 1;

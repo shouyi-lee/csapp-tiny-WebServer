@@ -35,10 +35,12 @@ ssize_t doit(rio_t* rp, int *reuse)
     parse_http_request_line(rp, &clientrequest);
     if (clientrequest.is_valid_request == 0)
     {
-        log.err_stat = "invalid_request";
-        if (!clientrequest.have_receive_request)
+        if (clientrequest.have_receive_request)
+        {
+            log.err_stat = "invalid_request";
             log.method = clientrequest.raw_request;
-        (void)log_error(&log);
+            (void)log_error(&log);
+        }
         *reuse = 0;
         return -1;
     }

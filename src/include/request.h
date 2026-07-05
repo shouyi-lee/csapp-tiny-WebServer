@@ -18,6 +18,7 @@ typedef struct {
     int is_valid_request_head;
     int have_receive_request;
     int keep_alive;
+    int is_active;
 } http_request_t;
 
 void parse_http_request_line(rio_t *rp, http_request_t *hrp);

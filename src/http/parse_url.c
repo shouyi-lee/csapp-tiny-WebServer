@@ -4,6 +4,7 @@
 #include <sys/stat.h>
 #include <string.h>
 
+//健壮的
 void parse_url(http_request_t *hrp)
 {
     hrp->is_valid_url = 0;
