@@ -6,6 +6,7 @@ RUN_PORT ?= 1145
 RUN_COND ?= &
 BASIC_HTML ?= website/index.html
 DEBUG ?= f
+REAL_IP_HEAD = CF-Connecting-IP
 
 SRCS := $(shell find src -type f -name '*.c' | sort)
 OBJS := $(SRCS:.c=.o)
@@ -13,6 +14,7 @@ DEPS := $(OBJS:.o=.d)
 
 CPPFLAGS ?=
 CPPFLAGS += -Isrc/include
+CPPFLAGS += -DREAL_IP_HEAD='"$(REAL_IP_HEAD)"'
 
 CFLAGS ?= -Wall -Wextra -std=gnu11
 ifeq ($(DEBUG), f)

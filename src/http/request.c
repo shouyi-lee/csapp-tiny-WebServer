@@ -49,6 +49,7 @@ void parse_http_request_head(rio_t *rp, http_request_t *hrp)
 {
     hrp->keep_alive = 1;
     hrp->is_valid_request_head = 1;
+    hrp->get_ip = 0;
 
     char buf[BUFLEN];
     
@@ -68,8 +69,18 @@ void parse_http_request_head(rio_t *rp, http_request_t *hrp)
             if (cmp_r != NULL)
             {
                 hrp->keep_alive = 0;
-                break;
             }
+        }
+
+        ssize_t cmp_s = strncmp(buf, REAL_IP_HEAD, strlen(REAL_IP_HEAD));
+        if (!cmp_s)
+        {
+            char *value_start = strchr(buf, ':') + 1;
+            if (value_start == NULL) continue;
+            while (*value_start == ' ' || *value_start == '\t') value_start++;
+
+            ssize_t rc = sscanf(value_start, "%s", hrp->raw_ip);
+            if (rc == 1) hrp->get_ip = 1;
         }
         
     }while (strncmp(buf, "\r\n", 3));

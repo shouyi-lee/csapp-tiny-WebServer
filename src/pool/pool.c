@@ -145,7 +145,7 @@ ssize_t task_return(task_t task)
     return 0;
 }
 
-ssize_t customer_add(int fd, void *client_info, size_t client_info_len)
+ssize_t customer_add(int fd)
 {
     sem_wait(&customer_space_slot);
 
@@ -164,7 +164,6 @@ ssize_t customer_add(int fd, void *client_info, size_t client_info_len)
     this_customer->occupied = 1;
     this_customer->busy = 0;
     rio_init(&this_customer->rio, fd);
-    memcpy(&this_customer->client_info, client_info, client_info_len);
 
     pthread_mutex_unlock(&this_customer->mutex);
     sem_post(&customer_space_occupied);

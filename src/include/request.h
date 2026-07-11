@@ -11,6 +11,7 @@ typedef struct {
     char version[BUFLEN];
     char cgiargs[BUFLEN];
     char raw_request[BUFLEN];
+    char raw_ip[BUFLEN];
     int is_static;
     int is_suport_method;
     int is_valid_url;
@@ -19,6 +20,7 @@ typedef struct {
     int have_receive_request;
     int keep_alive;
     int is_active;
+    int get_ip;
 } http_request_t;
 
 void parse_http_request_line(rio_t *rp, http_request_t *hrp);

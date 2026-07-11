@@ -23,7 +23,7 @@ ssize_t log_request(log_unit_t *log_unit)
     if (time_stamp(writebuf) == NULL) return -1;
     size_t time_len = strlen(writebuf);
 
-    int rc1 = snprintf(writebuf + time_len, BUFLEN - time_len, " [info] %s %s -> %s\n", log_unit->method, log_unit->url, "200 OK");
+    int rc1 = snprintf(writebuf + time_len, BUFLEN - time_len, " [info] %s   %s %s -> 200 OK\n", log_unit->source_ip, log_unit->method, log_unit->url);
     if (rc1 >= BUFLEN - (int)time_len) rc1 = snprintf(writebuf + time_len, BUFLEN - time_len, " [error] method or url are too long to show\n");
     if (rc1 < 0) return -1;
 
@@ -41,7 +41,7 @@ ssize_t log_error(log_unit_t *log_unit)
     if (time_stamp(writebuf) == NULL) return -1;
     size_t time_len = strlen(writebuf);
 
-    int rc1 = snprintf(writebuf + time_len, BUFLEN - time_len, " [error]: %s \t\t%s %s\n", log_unit->err_stat, log_unit->method, log_unit->url);
+    int rc1 = snprintf(writebuf + time_len, BUFLEN - time_len, " [error] %s   %s   %s %s\n", log_unit->source_ip, log_unit->err_stat, log_unit->method, log_unit->url);
     if (rc1 >= BUFLEN - (int)time_len) rc1 = snprintf(writebuf + time_len, BUFLEN - time_len, " [error] error: %s\tmethod or url are too long to show\n", log_unit->err_stat);
     if (rc1 < 0) return -1;
 

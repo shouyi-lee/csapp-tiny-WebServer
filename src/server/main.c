@@ -50,17 +50,10 @@ int main(int argc, char *argv[])
 
     while (1)
     {
-        socklen_t clientlen = sizeof(struct sockaddr_storage);
-        struct sockaddr_storage client;
-        struct sockaddr *clientp = (struct sockaddr*)&client;
+        int confd = accept(listenfd, NULL, NULL);
+        if (confd < 0) continue;   
 
-        int confd = accept(listenfd, clientp, &clientlen);
-        if (confd < 0) continue;
-
-        char hostname[1024], port[1024];
-        getnameinfo(clientp, clientlen, hostname, 1024, port, 1024, NI_NUMERICHOST|NI_NUMERICSERV);   
-
-        customer_add(confd, clientp, clientlen);
+        customer_add(confd);
     }
 
     return 0;

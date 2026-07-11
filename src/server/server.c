@@ -28,7 +28,8 @@ ssize_t doit(rio_t* rp, int *reuse)
     log_unit_t log = {
         .err_stat = "-",
         .method = "-",
-        .url = "-"
+        .url = "-",
+        .source_ip = "unknown ip"
     };
     *reuse = 1;
 
@@ -57,7 +58,7 @@ ssize_t doit(rio_t* rp, int *reuse)
     }
 
     parse_http_request_head(rp, &clientrequest);
-    if (clientrequest.is_valid_request_head == 0)
+    if (!clientrequest.is_valid_request_head)
     {
         log.err_stat = "invalid request head";
         (void)log_error(&log);
@@ -65,6 +66,7 @@ ssize_t doit(rio_t* rp, int *reuse)
         return -1;
     }
     *reuse = clientrequest.keep_alive;
+    if (clientrequest.get_ip) log.source_ip = clientrequest.raw_ip;
 
     parse_url(&clientrequest);
     if (!clientrequest.is_valid_url)
