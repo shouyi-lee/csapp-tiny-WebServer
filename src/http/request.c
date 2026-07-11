@@ -72,7 +72,7 @@ void parse_http_request_head(rio_t *rp, http_request_t *hrp)
             }
         }
 
-        ssize_t cmp_s = strncmp(buf, REAL_IP_HEAD, strlen(REAL_IP_HEAD));
+        ssize_t cmp_s = strncasecmp(buf, REAL_IP_HEAD, strlen(REAL_IP_HEAD));
         if (!cmp_s)
         {
             char *value_start = strchr(buf, ':') + 1;
