@@ -46,7 +46,7 @@ static ssize_t escape_url(char *url, char *escaped_url, size_t buflen)
     {
         if (write_length + (size_t)(neddle2 - neddle1) + 1 >= buflen)
             return -1;
-        strncpy(escaped_url + write_length, neddle1, neddle2 - neddle1);
+        if (neddle2 - neddle2 > 0) strncpy(escaped_url + write_length, neddle1, neddle2 - neddle1);
         write_length += neddle2 - neddle1;
 
         if (hex_2_char(neddle2, escaped_url + write_length) < 0) return -1;
