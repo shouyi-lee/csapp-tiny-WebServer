@@ -4,6 +4,8 @@
 #include <sys/stat.h>
 #include <string.h>
 
+extern char source_url[BUFLEN];
+
 static inline int in_hex_char(char ch)
 {
     if (ch < '0') return 0;
@@ -97,7 +99,7 @@ void parse_url(http_request_t *hrp)
     if (file_level <= 0)
         return;
 
-    strcpy(hrp->filename, "./website");
+    strcpy(hrp->filename, source_url);
     if (strlen(hrp->filename) + strlen(hrp->url) >= BUFLEN) return;
     strcat(hrp->filename, hrp->url);
 

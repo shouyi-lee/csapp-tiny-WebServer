@@ -13,6 +13,8 @@
 #include <string.h>
 #include <pthread.h>
 
+extern char log_url[BUFLEN];
+
 static int log_file_fd;
 pthread_mutex_t mutex;
 
@@ -54,7 +56,7 @@ ssize_t log_error(log_unit_t *log_unit)
 
 ssize_t log_init()
 {
-    int fd = open("./log_file/server_log", O_CREAT | O_RDWR | O_APPEND, 0644);
+    int fd = open(log_url, O_CREAT | O_RDWR | O_APPEND, 0644);
     if (fd < 0) return -1;
     log_file_fd = fd;
     return 0;

@@ -86,6 +86,7 @@ ssize_t rio_read(rio_t* rp, char* buf, size_t nbytes)
     return cnt;
 }
 
+//不完全健壮，要求读入的nbytes不能超过rio包的缓冲区长度
 ssize_t rio_readnb(rio_t* rp, char *buf, size_t nbytes)
 {
     ssize_t rc, wait_read;
