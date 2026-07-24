@@ -4,6 +4,8 @@
 #include <stdio.h>
 #include <string.h>
 
+extern server_t server_config;
+
 typedef char* supported_method_t;
 supported_method_t supported_methods[]
 =
@@ -72,7 +74,7 @@ void parse_http_request_head(rio_t *rp, http_request_t *hrp)
             }
         }
 
-        ssize_t cmp_s = strncasecmp(buf, REAL_IP_HEAD, strlen(REAL_IP_HEAD));
+        ssize_t cmp_s = strncasecmp(buf, server_config.real_ip_head, strlen(server_config.real_ip_head));
         if (!cmp_s)
         {
             char *value_start = strchr(buf, ':') + 1;

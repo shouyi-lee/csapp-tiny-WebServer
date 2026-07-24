@@ -4,7 +4,7 @@
 #include <sys/stat.h>
 #include <string.h>
 
-extern char source_url[BUFLEN];
+extern server_t server_config;
 
 static inline int in_hex_char(char ch)
 {
@@ -70,7 +70,7 @@ void parse_url(http_request_t *hrp)
     hrp->is_static = 1;
 
     if (!strcmp("/", hrp->url))
-        strcpy(hrp->url, "/index.html");
+        strcpy(hrp->url, server_config.root_source);
 
     char escaped_url[BUFLEN];
     if (escape_url(hrp->url, escaped_url, BUFLEN) < 0) return;
@@ -99,7 +99,7 @@ void parse_url(http_request_t *hrp)
     if (file_level <= 0)
         return;
 
-    strcpy(hrp->filename, source_url);
+    strcpy(hrp->filename, server_config.source_url);
     if (strlen(hrp->filename) + strlen(hrp->url) >= BUFLEN) return;
     strcat(hrp->filename, hrp->url);
 
