@@ -153,10 +153,7 @@ ssize_t rio_readline(int fd, char *buf, size_t nbytes)
     while (wait_read > 0)
     {
         if (wait_read == 1)
-        {
-            buf[nbytes - wait_read] = '\0';
             break;
-        }
 
         ssize_t rc = read(fd, &tem, 1);
         if (rc < 0)
@@ -167,17 +164,20 @@ ssize_t rio_readline(int fd, char *buf, size_t nbytes)
                 return -1;
         } 
         else if (rc == 0)
-            break;
+        {
+            if (nbytes - wait_read > 0)
+                break;
+            return 0;
+        }
         
         buf[nbytes - wait_read] = tem;
         wait_read--;
         
         if (tem == '\n')
-        {
-            buf[nbytes - wait_read] = '\0';
             break;
-        }
+        
     }
 
+    buf[nbytes - wait_read] = '\0';
     return nbytes - wait_read;
 }
