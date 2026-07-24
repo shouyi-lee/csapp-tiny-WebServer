@@ -43,6 +43,7 @@ ssize_t clienterror(rio_t *rp, const char *code)
     if (!strcmp("501", code))
         if (send_responsehead(rp, "Connection", "close") < 0)
             return -1;
+    if (send_responsehead(rp, "Content-length", "0") < 0) return -1;
     if (send_responsehead(rp, NULL, NULL) < 0) return -1;
     return 0;
 }
