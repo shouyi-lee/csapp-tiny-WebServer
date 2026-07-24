@@ -70,7 +70,7 @@ void parse_url(http_request_t *hrp)
     hrp->is_static = 1;
 
     if (!strcmp("/", hrp->url))
-        strcpy(hrp->url, server_config.root_source);
+        strcat(hrp->url, server_config.root_source);
 
     char escaped_url[BUFLEN];
     if (escape_url(hrp->url, escaped_url, BUFLEN) < 0) return;

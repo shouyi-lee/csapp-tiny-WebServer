@@ -29,7 +29,7 @@ make clean
 port: 1145
 log_url: log_file/server_log
 source_url: website
-root_source: /index.html
+root_source: index.html
 real_ip_head: CF-Connecting-IP
 ```
 
@@ -40,7 +40,7 @@ real_ip_head: CF-Connecting-IP
 | `port` | 监听端口，必须是数字端口 |
 | `log_url` | 日志文件路径；文件不存在时会创建，但父目录必须已经存在 |
 | `source_url` | 静态资源根目录 |
-| `root_source` | 请求 `/` 时使用的默认资源 URL，应以 `/` 开头 |
+| `root_source` | 请求 `/` 时使用的默认资源相对路径，不应以 `/` 开头 |
 | `real_ip_head` | 用于取得真实客户端 IP 的 HTTP 请求头名称，匹配时不区分大小写 |
 
 当前配置解析器有以下限制：
@@ -57,7 +57,7 @@ real_ip_head: CF-Connecting-IP
 port: 1145
 log_url: /var/log/tiny-server/server.log
 source_url: /srv/tiny-server/www
-root_source: /index.html
+root_source: index.html
 real_ip_head: X-Real-IP
 ```
 
