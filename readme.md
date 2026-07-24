@@ -19,6 +19,60 @@ make rebuild
 make clean
 ```
 
+## 安装
+
+仓库提供 `scripts/install.sh`，用于下载指定版本源码、编译并安装为 systemd
+系统服务。建议先下载和阅读脚本，再以普通用户执行；脚本只在写系统目录和管理
+服务时调用 `sudo`：
+
+```bash
+curl -fLO \
+  https://raw.githubusercontent.com/shouyi-lee/csapp-tiny-WebServer/master/scripts/install.sh
+chmod +x install.sh
+less install.sh
+./install.sh
+```
+
+当前仓库尚未发布版本标签，因此默认下载 `master`。：
+
+```bash
+./install.sh --ref v0.1.0 --sha256 <64位SHA-256>
+```
+
+也可以安装当前工作区，而不再次下载：
+
+```bash
+./scripts/install.sh --source-dir .
+```
+
+脚本默认安装：
+
+```text
+/usr/local/bin/tiny-server
+/usr/local/share/tiny-server/server.conf.example
+/etc/tiny-server/server.conf
+/srv/tiny-server/www/
+/etc/systemd/system/tiny-server.service
+```
+
+日志目录由 unit 中的 `LogsDirectory=tiny-server` 在服务启动时创建，程序将
+日志写入 `/var/log/tiny-server/server.log`。重复运行脚本会更新二进制、示例
+配置和 systemd unit，但不会覆盖已有正式配置或非空的网站目录。常用选项：
+
+```bash
+# 只安装，不启用或启动服务
+./install.sh --no-start
+
+# 新建配置时改用端口 8080
+./install.sh --port 8080
+
+# 强制把示例网页复制进已有网站目录
+./install.sh --force-web
+
+# 在临时根目录中进行打包/测试，不使用 sudo 或 systemctl
+./install.sh --source-dir . --destdir /tmp/tiny-server-root
+```
+
 ## 配置
 
 服务器启动时从配置文件读取端口、日志路径、静态资源路径、默认首页和
